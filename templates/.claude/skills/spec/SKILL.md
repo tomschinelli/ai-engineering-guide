@@ -18,5 +18,7 @@ Goal: a short, concrete spec the user approves before any planning or code.
 3. Repeat until there are no open questions that would change the design.
 4. Write `docs/specs/<feature-slug>.md` using the structure:
    Problem/goal · Scope · Non-goals · Behaviour (table of examples) · Acceptance criteria (checkboxes) · Constraints · Open questions
+   Advanced setup, only if the user asks for the spec as an issue: use the same structure as the issue body, show it, and after
+   confirmation create it with `gh issue create --title "Spec: <feature>" --body-file <tmp file>`.
 5. Acceptance criteria must be checkable. Each one should map to a test.
-6. STOP. Show the spec path and a 3-line summary. Don't plan or implement until the user approves.
+6. STOP. Show the spec path (or issue URL) and a 3-line summary. Don't plan or implement until the user approves.

@@ -26,6 +26,7 @@ cp templates/.github/workflows/claude.yml "$PROJECT/.github/workflows/"  # L7
 | `.claude/hooks/protect-files.sh` | L5 | Block edits to secrets, go.sum, generated/vendored files |
 | `.claude/hooks/vet-on-stop.sh` | L5 | Agent can't finish while `go vet` fails |
 | `.claude/skills/spec/` | L5 | `/spec`: interview → spec |
+| `.claude/skills/grill-me/` + `grilling/` | L3, L5 | `/grill-me`: harden spec + plan before you approve ([source](https://claudemarketplaces.com/skills/mattpocock/skills/grill-me), copied verbatim) |
 | `.claude/skills/tdd/` | L5 | `/tdd`: test-first implementation with a review stop |
 | `.claude/skills/ship/` | L5 | `/ship`: verify, self-review, open PR |
 | `.claude/agents/go-reviewer.md` | L6 | Independent fresh-context reviewer |

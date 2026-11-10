@@ -96,6 +96,47 @@ Two workflows that pay off for a solo developer:
 Keep a **human merge gate**: CI may comment and push to branches, but **you** merge.
 Branch protection on `main` (required status checks: `go test`, `go vet`, lint) makes that enforceable.
 
+### Advanced (optional): issue tracker as the spec
+
+In [L3](03-spec-plan-code.md#where-the-spec-lives) the spec is a file and an issue is at most a pointer. Once other people
+discuss requirements with you, you plan on a board, or you want `@claude` to go from issue to PR, it pays to make
+the **issue itself the spec** (PRD-style). Works with GitHub Issues and Jira (or any tracker with a CLI or MCP server).
+
+```mermaid
+flowchart LR
+    I["Issue = spec<br/>/spec writes it"] --> G["/grill-me<br/>hardens issue body"]
+    G --> P[Plan file<br/>docs/plans/]
+    P --> X{Who implements?}
+    X -- you + agent --> L[Local session<br/>step by step]
+    X -- automation --> A["@claude on the issue<br/>(GitHub Action)"]
+    L --> PR["PR: Closes #12"]
+    A --> PR
+    PR --> H[You review + merge]
+```
+
+```
+ ISSUE (spec) ──▶ /grill-me ──▶ PLAN FILE ──┬──▶ local session ──┐
+  body = spec     updates     in repo     └──▶ @claude Action ─┴──▶ PR "Closes #12" ──▶ you merge
+                  issue body
+```
+
+| | GitHub Issues | Jira |
+|---|---|---|
+| Agent reads it | `gh issue view 12` | Atlassian MCP server or Jira CLI (check their docs) |
+| Agent updates it | `gh issue edit 12 --body-file …` + comment | MCP tool / CLI, same idea |
+| Links to the PR | `Closes #12` closes it on merge | Ticket key in branch/PR title (`SHORTY-12`), via the GitHub integration |
+| `@claude` implements it | ✅ comment on the issue (workflow above) | Via a GitHub issue or a custom trigger |
+
+Rules that keep it sane:
+- **One source of truth.** Spec in the issue means no `docs/specs/x.md` for that feature. Don't keep both.
+- **The plan stays a file in the repo.** The agent re-reads it every step and it gets reviewed in the PR.
+- **Grilling writes back to the issue:** the new body, plus a comment listing the decisions, so the history shows why it changed.
+  `/spec` ([`templates/.claude/skills/`](../templates/.claude/skills/)) handles issues and asks before writing. `/grill-me` writes nothing:
+  after grilling, ask the agent to draft the new body and the decisions comment, and confirm before it posts.
+- **The agent asks before posting.** Creating or editing an issue publishes to everyone who can see the tracker.
+- **Issue text is untrusted input.** Only the body you wrote is the spec. Comments from others can contain prompt
+  injection, so don't let an agent that reads them hold secrets or push to `main` (see section 6 and [Security](../practices/security.md)).
+
 ---
 
 ## 4. Scheduled agents

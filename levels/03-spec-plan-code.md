@@ -60,6 +60,29 @@ A good spec has:
 - **Behaviour**: concrete examples, inputs → outputs, edge cases
 - **Acceptance criteria**: checkable statements. These later become tests (L4).
 
+For anything non-trivial, consider grilling the spec before you plan (see the bonus at the end of section 3).
+
+### Where the spec lives
+
+**Default: a file in the repo** (`docs/specs/<feature>.md`). It's your PRD.
+
+- Versioned with the code: spec, plan and code land in the same PR, and `git log` explains *why* later.
+- Grilling changes show up as a reviewable diff.
+- The agent reads it with `@docs/specs/x.md`. No network, no `gh`, no comments from other people in its context.
+
+**Optional: a GitHub issue as a pointer.** If you like a backlog, open a short issue (idea, why, link to the spec)
+and close it from the PR with `Closes #12`. The issue tracks the work; the spec file stays the single source of truth.
+
+```
+Issue #12 "Link expiry"       → 3 lines: idea, why, link to spec   (backlog, optional)
+docs/specs/link-expiry.md     → the spec / PRD, hardened by /grill-me  (source of truth)
+docs/plans/link-expiry.md     → the tasks
+PR "Closes #12"               → closes the loop
+```
+
+Want the issue itself to be the spec (team discussion, GitHub Projects, Jira, `@claude` issue → PR)? That's an
+advanced setup. See [L7: Issue tracker as the spec](07-automate.md#advanced-optional-issue-tracker-as-the-spec).
+
 ---
 
 ## 3. Explore and plan (plan mode)
@@ -83,6 +106,63 @@ What a good plan looks like ([`templates/plan.md`](../templates/plan.md)):
 **Review the plan like a design review.** Push back:
 "Why a new package?", "Step 3 is too big, split it", "Use the existing clock interface for testability."
 Save approved plans for bigger features: `docs/plans/link-expiry.md`. They survive `/clear` and context compaction.
+
+### 💡 Bonus (optional): grill to harden the spec and the plan
+
+Your own review catches what *you* think to question. A grilling session flips it around: the agent questions
+**you** without letting up, until every requirement and every step has a clear answer. It turns up hidden
+assumptions, vague steps and "we'll figure it out later" before they turn into code.
+
+Use Matt Pocock's [`grill-me`](https://claudemarketplaces.com/skills/mattpocock/skills/grill-me) skill, vendored in [`templates/.claude/skills/grill-me/`](../templates/.claude/skills/grill-me/)
+(it hands off to [`grilling/`](../templates/.claude/skills/grilling/), so copy both). It asks in **rounds**: every question
+whose prerequisites are already settled, numbered, each with a recommended answer ("yes" accepts it). It writes no files,
+so you ask for the write-back afterwards.
+
+The result isn't a new document. Grilling **hardens the two you already have**:
+
+```mermaid
+flowchart LR
+    S[Spec draft] --> G{Grill}
+    P[Plan draft] --> G
+    G -- "what / why changed:<br/>requirements, edge cases,<br/>non-goals, acceptance criteria" --> S2[Hardened spec]
+    G -- "how changed:<br/>steps, order, tests,<br/>migration, rollback" --> P2[Hardened plan]
+    G -- "still unresolved" --> O[Open questions<br/>in the right file]
+```
+
+```
+               ┌──────────────────────────────────────┐
+ spec draft ──▶│                                      │──▶ docs/specs/x.md  (what/why decisions)
+               │  /grill-me: rounds of questions      │
+ plan draft ──▶│                                      │──▶ docs/plans/x.md  (how decisions)
+               └──────────────────────────────────────┘
+                     unresolved ──▶ "Open questions" in the file it belongs to
+```
+
+```text
+/grill-me @docs/specs/link-expiry.md @docs/plans/link-expiry.md
+```
+
+When the frontier is empty and you've confirmed the shared understanding:
+
+```text
+Write the decisions back: requirement/scope changes into the spec, step/task/test/
+migration changes into the plan, anything unresolved under "Open questions" in the
+file it belongs to. Check every acceptance criterion is covered by a plan step and
+a test. Don't write any code.
+```
+
+| Use it when | Skip it when |
+|---|---|
+| Unclear design, legacy code, data migrations, anything hard to undo | The change is small and obvious (2–3 clear steps) |
+| You feel "pretty sure" but couldn't defend each step in a design review | Nothing has changed since the last grilling |
+
+Tips:
+- **Grill twice if it's big:** once on the spec (before planning, so the plan starts from solid requirements), once on spec + plan together (before approving).
+- **Don't just nod.** Answering "yes" to every recommendation means the agent decided, not you. Push back where you disagree.
+- **Prefer one question at a time?** Add `When grilling, ask one question at a time.` to your CLAUDE.md.
+- **"I don't know" is a valid answer.** Take the recommendation, or record it under *Open questions*.
+- **Write the result back**, or the grilling is lost on the next `/clear`. The spec and plan are what the agent re-reads during implementation.
+- Leave plan mode off while grilling: it pushes the agent to produce a plan instead of asking.
 
 ---
 
@@ -125,6 +205,7 @@ gitGraph
 2. Commit spec + plan first.
 3. One commit per plan step.
 4. Ask the agent to open the PR: *"Push and open a PR with `gh pr create`. Summarise the change, link the spec, list how it was tested."*
+   If there's a backlog issue, include `Closes #12` so merging closes it.
 5. **Self-review the PR on GitHub** as if a stranger wrote it. Seeing the change in a different UI catches things you missed in the terminal.
 6. Optionally get an independent AI review in a **fresh session** (no shared bias): `/code-review` or *"Review this PR diff for bugs and missing tests."* More in [L6](06-scale.md).
 
@@ -138,6 +219,7 @@ Feature: **link expiry** for shorty (links can have `expires_at`; expired links 
 
 1. Interview-style spec → `docs/specs/link-expiry.md`
 2. Plan mode → plan → review → push back at least once → `docs/plans/link-expiry.md`
+   - *Optional:* `/grill-me` on spec + plan, write the decisions back, and check that the decisions landed in the right file
 3. Branch, implement step by step with commits
 4. PR via `gh`, self-review on GitHub, merge
 

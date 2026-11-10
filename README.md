@@ -82,7 +82,7 @@ flowchart TB
 | [`plan.md`](templates/plan.md) | L3: the agent's implementation plan |
 | [`review-checklist.md`](templates/review-checklist.md) | L1/L4: review AI-written diffs |
 | [`.claude/settings.json`](templates/.claude/settings.json) | L0/L5: permissions + hooks |
-| [`.claude/skills/`](templates/.claude/skills/) | L5: reusable workflows (`/spec`, `/tdd`, `/ship`) |
+| [`.claude/skills/`](templates/.claude/skills/) | L5: reusable workflows (`/spec`, `/grill-me`, `/tdd`, `/ship`) |
 | [`.claude/agents/`](templates/.claude/agents/) | L6: specialised subagents |
 | [`.github/workflows/claude.yml`](templates/.github/workflows/claude.yml) | L7: Claude in GitHub Actions |
 

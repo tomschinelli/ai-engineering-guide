@@ -27,7 +27,7 @@ flowchart LR
 | 9 | Small tasks: if you can't review the diff in a few minutes, split the task | [L1](../levels/01-prompt-verify.md) |
 | 10 | Say what NOT to do (no new deps, don't touch tests, don't refactor X) | [L1](../levels/01-prompt-verify.md) |
 | 11 | For non-trivial work: spec → plan mode → review plan → implement | [L3](../levels/03-spec-plan-code.md) |
-| 12 | Let the agent interview you to sharpen vague requirements | [L3](../levels/03-spec-plan-code.md) |
+| 12 | Let the agent interview you to sharpen vague requirements. Optional: let it grill you to harden the spec and plan before you approve. | [L3](../levels/03-spec-plan-code.md) |
 | 13 | Write non-goals explicitly to prevent scope creep | [L3](../levels/03-spec-plan-code.md) |
 
 ## Agent works
