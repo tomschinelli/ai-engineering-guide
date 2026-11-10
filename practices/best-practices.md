@@ -65,6 +65,6 @@ flowchart LR
 ## Always
 
 - **Never paste secrets** into prompts. Deny-list `.env` and credential files. → [Security](security.md)
-- **Watch context, not just cost.** A bloated context gives worse answers. → [Context & cost](context-and-cost.md)
+- **Watch context, not just cost.** A bloated context gives worse answers. Stay in the smart zone (roughly the first ~40%). → [Smart zone vs. dumb zone](context-and-cost.md#smart-zone-vs-dumb-zone)
 - **Understand what you merge.** If you couldn't explain it in a code review, don't merge it. → [Staying sharp](staying-sharp.md)
 - **Know the failure modes** so you notice them early. → [Anti-patterns](anti-patterns.md)

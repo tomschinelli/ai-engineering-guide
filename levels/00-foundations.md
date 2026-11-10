@@ -100,7 +100,7 @@ More in [Security & permissions](../practices/security.md).
 | `Esc Esc` / `/rewind` | Jump back to an earlier point (conversation and/or code) | A path went bad, so try again from before it |
 | `/clear` | Empty the context | Between unrelated tasks |
 | `/compact [focus]` | Summarise the conversation to free space | Long task, context getting full |
-| `/context` | Show what fills the context window | Agent seems "dumb" or slow |
+| `/context` | Show what fills the context window | At step boundaries, or when the agent seems "dumb" or slow ([smart vs. dumb zone](../practices/context-and-cost.md#smart-zone-vs-dumb-zone)) |
 | `/model` | Switch model | Harder reasoning vs. faster/cheaper work |
 | `@path/to/file` | Pull a file into the prompt | You know exactly what's relevant |
 | `!command` | Run a shell command and put its output in context | Share a failing test output directly |

@@ -213,6 +213,7 @@ sequenceDiagram
 - One step → verify → commit. Don't say "implement the whole plan" until you trust the process (and the tests).
 - If reality differs from the plan, **stop and update the plan** instead of improvising.
 - Long feature? `/clear` between steps and restart with *"Read docs/plans/x.md. Steps 1–3 are done. Do step 4."*
+  This way each step starts in the [smart zone](../practices/context-and-cost.md#smart-zone-vs-dumb-zone) instead of at the end of a bloated session.
 
 ---
 
