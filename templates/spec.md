@@ -2,7 +2,7 @@
 
 - **Status:** draft | approved | done
 - **Date:** YYYY-MM-DD
-- **Related:** <issue link, ADRs>
+- **Related:** <issue link, ADRs, research file (docs/research/...)>
 
 ## Problem / goal
 <Why are we doing this? What's the pain or the opportunity? 2–4 sentences.>

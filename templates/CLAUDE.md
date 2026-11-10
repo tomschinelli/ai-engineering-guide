@@ -41,7 +41,8 @@
 ## Workflow
 - Work on a branch; one commit per logical step; conventional commit messages.
 - Non-trivial work: plan first (plan mode), wait for approval.
-- Specs live in docs/specs/, plans in docs/plans/.
+- Specs live in docs/specs/, plans in docs/plans/, research notes in docs/research/, QA plans in docs/qa/.
+- Prototypes go on `spike/*` branches and are never merged.
 
 ## Gotchas
 <!-- Add a line each time the agent makes a mistake that will recur. Delete lines that no longer apply. -->

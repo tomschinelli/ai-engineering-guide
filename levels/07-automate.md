@@ -1,4 +1,4 @@
-AFK# L7 — Automate
+# L7 — Automate
 
 **Goal:** Run the agent **without you at the keyboard**: in scripts, in CI, on a schedule, or inside your own tools.
 The same principles apply. Only the trigger changes.
@@ -79,29 +79,53 @@ Reference implementation: Matt Pocock's AI Engineer workshop 2026,
 [`mattpocock/ai-engineer-workshop-2026-project`](https://github.com/mattpocock/ai-engineer-workshop-2026-project), folder `ralph/`.
 The repo has **no license file**, so read it there instead of copying it into your project.
 
+### The end-to-end journey
+
+This is where the levels come together. Each step is something you already practised on its own:
+
+| # | Step | What happens | Output | Learned in |
+|---|---|---|---|---|
+| 1 | **Idea** | App, feature or refactor. Sharpen it with an interview or `/grill-me`. | decisions | [L3](03-spec-plan-code.md#3-spec-what-and-why-you-write-it-with-help) |
+| 2 | **Research** *(optional)* | Expensive exploring, done once and saved to a file | `docs/research/<f>.md` | [L3](03-spec-plan-code.md#research-cache-the-exploration-in-a-file) |
+| 3 | **Prototype** *(optional)* | Throwaway spike for early feedback; keep the assets, not the code | learnings in the research file | [L3](03-spec-plan-code.md#prototype-throwaway-code-for-early-feedback) |
+| 4 | **PRD** | Destination: user stories, acceptance criteria, implementation notes | `docs/specs/<f>.md` | [L3](03-spec-plan-code.md#where-the-spec-lives) |
+| 5 | **Kanban** | PRD → vertical-slice tickets with blocking relationships, AFK or HITL | `issues/*.md` | [L3](03-spec-plan-code.md#slice-vertically-not-horizontally), here |
+| 6 | **Implementation** | Loop: fresh context per round, one AFK ticket, tests, commit | commits on a branch | [L4](04-test-first.md), here |
+| 7 | **QA / code review** | You review the commits; the agent writes a QA plan, **you** run it | `docs/qa/<f>.md`, PR | [L1](01-prompt-verify.md), [L6](06-scale.md#2-writer--reviewer-split), here |
+
 ### The pipeline
 
 ```mermaid
 flowchart LR
-    G["/grill-me<br/>idea → decisions"] --> PRD["write-a-prd<br/>PRD"]
+    G["/grill-me<br/>idea → decisions"] -.-> RS["research.md /<br/>prototype<br/>(optional)"]
+    G --> PRD["write-a-prd<br/>PRD"]
+    RS -.-> PRD
     PRD --> TIX["prd-to-issues<br/>vertical slices<br/>AFK / HITL"]
     TIX --> B[("Board<br/>issues/*.md")]
     B --> R["afk.sh N<br/>Docker sandbox loop"]
     R -->|"1 ticket / round<br/>test + commit"| B
     R -->|"NO MORE TASKS"| H["You review<br/>the commits"]
+    H --> QA["QA plan<br/>you test by hand"]
+    QA -->|"failures → new tickets"| B
+    QA -->|pass| PR[PR → merge]
     B -. HITL tickets .-> YOU[You, interactively]
 ```
 
 ```
- /grill-me ─▶ PRD ─▶ prd-to-issues ─▶ BOARD (issues/*.md) ◀──────────────┐
-                     AFK / HITL           │                              │
-                                          ▼                              │
-                            afk.sh N: docker sandbox, claude --print     │
-                            pick 1 AFK ticket → /tdd → test + typecheck  │
-                            → commit → move ticket to issues/done/ ──────┘
-                                          │ all AFK done
-                                          ▼
-                            "<promise>NO MORE TASKS</promise>" ─▶ you review
+ /grill-me ─▶ (research / prototype) ─▶ PRD ─▶ prd-to-issues ─▶ BOARD (issues/*.md) ◀──────────┐
+                  optional                     AFK / HITL           │                          │
+                                                                    ▼                          │
+                                      afk.sh N: docker sandbox, claude --print                 │
+                                      pick 1 AFK ticket → /tdd → test + typecheck              │
+                                      → commit → move ticket to issues/done/ ──────────────────┤
+                                                    │ all AFK done                             │
+                                                    ▼                                          │
+                                      "<promise>NO MORE TASKS</promise>"                       │
+                                                    ▼                                          │
+                                      you review commits ─▶ QA plan ─▶ you test ── fail ───────┘
+                                                                         │ pass
+                                                                         ▼
+                                                                    PR ─▶ merge
 ```
 
 The "kanban board" is just folders: open tickets in `issues/*.md`, finished ones moved to `issues/done/`.
@@ -153,6 +177,25 @@ testable on its own, or a round can't finish it.
 
 Run the loop on a **feature branch, never `main`**. Review the commits and merge through a PR with CI, the same human gate as
 everywhere else (section 7). The sandbox makes it safe to let the agent *run*. It doesn't make the output safe to *merge*.
+
+### After the loop: QA plan for a human
+
+Green tests prove what the tests check. After an AFK run nobody has *used* the feature yet. Code review
+([`review-checklist.md`](../templates/review-checklist.md)) reads the diff; QA tries the behaviour.
+Let the agent write the plan, and run it yourself.
+
+```text
+Fresh session. Read @docs/specs/link-expiry.md and `git log -p main..HEAD`.
+Write a manual QA plan to docs/qa/link-expiry.md using @docs/qa/TEMPLATE.md:
+setup commands, which acceptance criteria are already covered by tests (by test
+name), exact manual steps + expected results for the rest, edge cases, risk areas
+the commits touched, and regression spot-checks. Don't change any code.
+```
+
+- **Fresh session**, so the plan isn't written by the same context that wrote the code ([L6 writer/reviewer split](06-scale.md#2-writer--reviewer-split)).
+- **You** run the steps. A QA plan the agent executes and ticks off for itself is just another test run.
+- Every failure becomes a **new ticket** on the board (steps to reproduce, expected vs. actual). The next loop picks it up.
+- All green → open the PR, link the QA plan, merge.
 
 ---
 
@@ -451,7 +494,7 @@ More in [Security & permissions](../practices/security.md).
 2. Add [`templates/.github/workflows/claude.yml`](../templates/.github/workflows/claude.yml) to shorty, open a PR, see the review, and try an `@claude` comment.
 3. Run the AFK loop pattern (section 3) on shorty: cut a small feature into 2–3 AFK tickets in `issues/`, write a Go
    `prompt.md` (`go test ./...`, `go vet ./...`), do one round interactively, then a bounded sandboxed run on a feature branch.
-   Review the commits like a PR.
+   Review the commits like a PR, then have a fresh session write `docs/qa/<feature>.md` and run it yourself.
 4. Set up one scheduled job (govulncheck or dependency updates) that opens an issue or PR.
 5. Build the TypeScript triage agent (Example 1) in `tools/agents/`, run it against shorty with a deliberately broken test,
    then extend it with one narrow custom tool and a `canUseTool` gate (Example 2).
@@ -462,6 +505,7 @@ More in [Security & permissions](../practices/security.md).
 
 - [ ] Every PR gets an automated review before you look at it
 - [ ] You can let a sandboxed loop work through AFK tickets on a branch and review its commits before merging
+- [ ] You can take an idea through the whole journey: (research/prototype) → PRD → board → loop → QA plan you test yourself → merge
 - [ ] Repetitive maintenance runs on a schedule and reports through issues/PRs
 - [ ] All automation runs with least privilege, bounded turns, and a human merge gate
 - [ ] You can choose between `claude -p`, Actions, routines, Agent SDK and the raw API for a given problem

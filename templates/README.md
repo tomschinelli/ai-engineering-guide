@@ -5,10 +5,11 @@ Copy into a Go project and adapt. Each file is introduced in a level of the guid
 ```bash
 PROJECT=~/repos/my-project
 cp templates/CLAUDE.md               "$PROJECT/CLAUDE.md"          # L2: then trim/adapt!
-mkdir -p "$PROJECT/docs/specs" "$PROJECT/docs/plans"
+mkdir -p "$PROJECT/docs/specs" "$PROJECT/docs/plans" "$PROJECT/docs/research" "$PROJECT/docs/qa"
 cp templates/spec.md                 "$PROJECT/docs/specs/TEMPLATE.md"   # L3
 cp templates/plan.md                 "$PROJECT/docs/plans/TEMPLATE.md"   # L3
 cp templates/review-checklist.md     "$PROJECT/docs/review-checklist.md" # L1/L4
+cp templates/qa-plan.md              "$PROJECT/docs/qa/TEMPLATE.md"      # L7
 cp -r templates/.claude              "$PROJECT/"                         # L5/L6: settings, hooks, skills, agents
 chmod +x "$PROJECT"/.claude/hooks/*.sh
 mkdir -p "$PROJECT/.github/workflows"
@@ -21,6 +22,7 @@ cp templates/.github/workflows/claude.yml "$PROJECT/.github/workflows/"  # L7
 | `spec.md` | L3 | What & why, with acceptance criteria |
 | `plan.md` | L3 | Step-by-step implementation plan |
 | `review-checklist.md` | L1, L4 | Review every AI diff |
+| `qa-plan.md` | L7 | Manual QA plan for a human after an AFK loop: test the behaviour, not the diff |
 | `.claude/settings.json` | L0, L5 | Permissions allow/ask/deny + hooks |
 | `.claude/hooks/gofmt.sh` | L5 | Format Go files after each edit |
 | `.claude/hooks/protect-files.sh` | L5 | Block edits to secrets, go.sum, generated/vendored files |

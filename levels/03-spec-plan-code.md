@@ -9,6 +9,8 @@ before the agent edits anything, then run the work through branches and PRs.
 
 ```mermaid
 flowchart LR
+    RS[Research<br/>optional] -.-> S
+    PT[Prototype<br/>optional] -.-> S
     S[Spec<br/>what + why] --> E[Explore<br/>plan mode, read-only]
     E --> P[Plan<br/>steps, files, risks]
     P --> R{You review plan}
@@ -21,6 +23,8 @@ flowchart LR
 ```
 
 ```
+ (optional) RESEARCH ─┐
+ (optional) PROTOTYPE ┴─▶ feed the spec
  ┌──────┐  ┌─────────┐  ┌──────┐  ┌────────┐  ┌───────────┐  ┌────────┐  ┌────────┐
  │ SPEC │─▶│ EXPLORE │─▶│ PLAN │─▶│ REVIEW │─▶│ IMPLEMENT │─▶│ VERIFY │─▶│ COMMIT │──▶ PR
  └──────┘  └─────────┘  └──────┘  └────────┘  └───────────┘  └────────┘  └────────┘
@@ -38,10 +42,61 @@ A plan is cheap to correct. Ten edited files are not.
 | Typo, rename, one-function fix | L1 micro-loop, no plan |
 | Clear change touching 2–5 files | Plan mode → implement |
 | New feature, unclear design, or legacy code | Full spec → explore → plan → implement |
+| Unknown territory: new library, unfamiliar subsystem, "is this even possible?" | Research and/or prototype first (section 2), then the full flow |
 
 ---
 
-## 2. Spec: what and why (you write it, with help)
+## 2. Before the spec (optional): research and prototype
+
+Both steps are optional. Use them when you can't write a good spec yet because you don't know enough.
+
+| Step | Use it when | Output | Merged? |
+|---|---|---|---|
+| **Research** | Exploring is expensive: big or legacy codebase, external APIs, several options to compare | `docs/research/<feature>.md` | Yes, with the spec |
+| **Prototype** | You need to *see* it to decide: API shape, library fit, performance, UX | Learnings + reusable assets | **No**, the code is thrown away |
+
+### Research: cache the exploration in a file
+
+An explore phase can burn a lot of context. If it only lives in the chat, the next `/clear`, the next session or the
+next AFK round ([L7](07-automate.md#3-afk-loop-work-through-a-board-in-a-sandbox-ralph)) pays for it again. Write it down once.
+
+```text
+I want to add link expiry to shorty. Research, don't change anything:
+how links are stored, read and cached (internal/store, internal/http), and how
+other Go projects do TTL cleanup (cron job vs. lazy delete on read).
+Write the findings to docs/research/link-expiry.md: how it works today with
+file:line references, constraints, options with trade-offs, sources (URLs +
+versions), open questions. Date it. Facts only, no plan yet.
+```
+
+- Use plan mode or Explore subagents ([L6](06-scale.md#1-subagents-separate-context-for-separate-jobs)) so nothing gets edited.
+- **Spot-check the `file:line` references** and sources. A wrong research file misleads every later session.
+- Link it from the spec (`Related:`) and point the planner at it: *"Read @docs/research/link-expiry.md, then plan."*
+- It goes stale. The date tells you when to re-check it. Don't keep research for code that has changed a lot since.
+
+### Prototype: throwaway code for early feedback
+
+A prototype answers **one question** quickly. It is not the first version of the feature.
+
+```text
+On a new branch spike/link-expiry, build the quickest possible prototype to answer:
+"Can we expire links with a Postgres partial index + lazy check on read, without a
+cleanup job?" No tests, no error handling polish. Timebox: this session.
+At the end, write what we learned and the reusable pieces to
+docs/research/link-expiry.md under "Prototype".
+```
+
+Rules:
+
+- **Own branch (`spike/<feature>`), never merged.** The real implementation starts from the spec and plan, with tests ([L4](04-test-first.md)).
+- **One question, timeboxed.** If it grows into "almost done", stop. That's the mega-prompt anti-pattern in disguise.
+- **Keep the assets, not the code:** the SQL that worked, a sample request/response, a test fixture, a benchmark number,
+  the API shape you settled on. Copy them into the research file so implementation can reuse them.
+- Feed the answer into the spec (behaviour, constraints, non-goals). Then delete the branch or leave it unmerged.
+
+---
+
+## 3. Spec: what and why (you write it, with help)
 
 A spec is a short document **you own**. Use [`templates/spec.md`](../templates/spec.md). Store it in `docs/specs/`.
 
@@ -60,7 +115,7 @@ A good spec has:
 - **Behaviour**: concrete examples, inputs → outputs, edge cases
 - **Acceptance criteria**: checkable statements. These later become tests (L4).
 
-For anything non-trivial, consider grilling the spec before you plan (see the bonus at the end of section 3).
+For anything non-trivial, consider grilling the spec before you plan (see the bonus at the end of section 4).
 
 ### Where the spec lives
 
@@ -75,6 +130,7 @@ and close it from the PR with `Closes #12`. The issue tracks the work; the spec 
 
 ```
 Issue #12 "Link expiry"       → 3 lines: idea, why, link to spec   (backlog, optional)
+docs/research/link-expiry.md  → findings + prototype learnings     (optional)
 docs/specs/link-expiry.md     → the spec / PRD, hardened by /grill-me  (source of truth)
 docs/plans/link-expiry.md     → the tasks
 PR "Closes #12"               → closes the loop
@@ -85,7 +141,7 @@ advanced setup. See [L7: Issue tracker as the spec](07-automate.md#advanced-opti
 
 ---
 
-## 3. Explore and plan (plan mode)
+## 4. Explore and plan (plan mode)
 
 Switch to **plan mode** (Shift+Tab) so the agent can only read.
 
@@ -131,7 +187,8 @@ steps it's blocked by.
 ```
 
 Why it matters: every step stays verifiable (L4), you can stop after any slice and still have working software, and
-slices whose blockers are done can run **in parallel**. [L6](06-scale.md#4-from-plan-to-a-board-vertical-tickets-for-parallel-agents) turns them into tickets on a board.
+slices whose blockers are done can run **in parallel** ([L6 worktrees](06-scale.md#3-parallel-sessions-with-git-worktrees)).
+[L7](07-automate.md#3-afk-loop-work-through-a-board-in-a-sandbox-ralph) turns them into tickets on a board that an agent loop works through.
 
 **Review the plan like a design review.** Push back:
 "Why a new package?", "Step 3 is too big, split it", "Use the existing clock interface for testability."
@@ -196,7 +253,7 @@ Tips:
 
 ---
 
-## 4. Implement step by step
+## 5. Implement step by step
 
 ```mermaid
 sequenceDiagram
@@ -216,7 +273,7 @@ sequenceDiagram
 
 ---
 
-## 5. Git and PR workflow (solo, GitHub)
+## 6. Git and PR workflow (solo, GitHub)
 
 ```mermaid
 gitGraph
@@ -243,10 +300,12 @@ Even solo, PRs give you a reviewable unit, a CI gate (L7), and history that expl
 
 ---
 
-## 6. Exercise
+## 7. Exercise
 
 Feature: **link expiry** for shorty (links can have `expires_at`; expired links return 410).
 
+0. *Optional:* research how links are stored → `docs/research/link-expiry.md`. If cleanup is unclear, prototype
+   one option on `spike/link-expiry` and record the result there. Don't merge the spike.
 1. Interview-style spec → `docs/specs/link-expiry.md`
 2. Plan mode → plan → review → push back at least once → `docs/plans/link-expiry.md`
    - Check the steps are vertical slices. If the agent planned by layer, re-cut it.
@@ -264,5 +323,6 @@ Feature: **link expiry** for shorty (links can have `expires_at`; expired links 
 - [ ] Features have a spec with acceptance criteria and non-goals
 - [ ] Work goes through a branch + PR with one commit per step
 - [ ] You can resume a feature after `/clear` from the plan file
+- [ ] When you don't know enough to write a spec, you research into a file or prototype on a throwaway branch first
 
 → Next: [L4 — Test-First](04-test-first.md)
