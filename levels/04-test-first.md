@@ -193,6 +193,61 @@ just forward calls. Propose merges that shrink the interface. Tests must stay un
 | A refactor that needs test changes | The boundary is wrong or the tests are too fine-grained. Stop and rethink the interface. |
 | Methods that just call one other method | "Merge pass-through layers" |
 
+### Deepening existing code: `/improve-codebase-architecture`
+
+Steps 1–5 above keep *new* code deep. For code that is **already shallow**, use the vendored skill
+[`improve-codebase-architecture`](../templates/.claude/skills/improve-codebase-architecture/) (`SKILL.md` +
+`REFERENCE.md`). It looks for clusters of shallow, tightly coupled modules and turns one of them into a refactor RFC for
+a deeper module. Read its `SKILL.md` for the exact process. In short, this is how you use it:
+
+```mermaid
+flowchart LR
+    X["/improve-codebase-architecture<br/>explores the repo"] --> C[Numbered list of<br/>deepening candidates]
+    C -->|you pick one| P[Problem framing<br/>constraints + sketch]
+    P --> D["3+ sub-agents:<br/>radically different interfaces"]
+    D --> R[Comparison +<br/>recommendation]
+    R -->|you pick| RFC["issues/*.md<br/>refactor RFC"]
+    RFC --> T["Implement test-first<br/>/tdd or L7 board"]
+```
+
+```
+ /improve-codebase-architecture
+   ├─ explore ─▶ candidates (cluster, coupling, dependency category, test impact)
+   │               └─ YOU pick one
+   ├─ frame problem ─▶ 3+ sub-agents design different interfaces ─▶ recommendation
+   │                                                                   └─ YOU pick
+   └─ writes issues/<name>.md (RFC) ─▶ implement it test-first (§2, /tdd, or the L7 board)
+```
+
+| Your step | What to do |
+|---|---|
+| Start | Run it on a clean branch: `/improve-codebase-architecture`. Optionally name an area: `… focus on internal/shortener and internal/store`. |
+| Pick a candidate | Prefer clusters where bugs keep appearing *between* pieces, or where tests are mostly mocks. |
+| Pick an interface | Apply the review questions from step 2 above: fewer methods/params? anything exported only for tests? |
+| Review the RFC | It's a spec (L3): check the interface, the dependency strategy and the list of tests to delete *before* any code. |
+| Implement | Boundary tests first, then move code behind the interface, then delete the old shallow tests as a separate, visible commit. |
+
+**Map the skill's dependency categories (see its `REFERENCE.md`) to shorty:**
+
+| Category | shorty example | How you test the deep module |
+|---|---|---|
+| In-process | URL validation, code generation, collision retry | Merge into `shortener`, test through `Shorten`/`Resolve` |
+| Local-substitutable | `Store` (Postgres) | In-memory store or testcontainers Postgres |
+| Remote but owned | a separate analytics service you run | Port (Go interface) + HTTP adapter in prod + in-memory adapter in tests |
+| True external | a third-party Safe Browsing / malware-check API | Port + fake at the boundary |
+
+**Watch out:**
+
+- **Cost.** It explores with sub-agents and spawns 3+ more for interface designs. Run it occasionally on a module
+  that hurts, not on every PR ([context & cost](../practices/context-and-cost.md)).
+- **Deleting tests is on purpose here.** The skill's testing strategy is "replace, don't layer": once boundary tests
+  exist, the old shallow tests go. That's fine **only** when it's listed in the RFC you approved and the new boundary
+  tests were green first. An unplanned test deletion is still tampering (§1).
+- **Go idiom.** "Port" in Go means a small interface defined by the *consumer*. Only add it at a real boundary
+  (categories 3 and 4). Keep the "no interface with one implementation" rule everywhere else.
+- **Output location.** It writes a local `issues/*.md` file. That fits the folder board in [L7](07-automate.md#the-pipeline).
+  An RFC is usually a **HITL** ticket: cut it into AFK slices before a loop picks it up.
+
 ---
 
 ## 4. Go testing conventions to put in CLAUDE.md
@@ -274,7 +329,8 @@ the code. List anything that looks like a bug separately.
 1. Add **click counting** to shorty with full TDD: criteria → tests → you review → red → commit → implement → green.
 2. Do the mutation spot-check on it.
 3. Before writing tests, have Claude propose the public interface of the package it touches (two designs). Pick the smaller one, then test only through it.
-4. In your legacy repo, pick one untested function you'll need to change soon and write characterisation tests for it.
+4. Run `/improve-codebase-architecture` on shorty (or your own repo). Pick one candidate, approve an RFC, and implement it test-first.
+5. In your legacy repo, pick one untested function you'll need to change soon and write characterisation tests for it.
 
 ---
 
@@ -286,5 +342,6 @@ the code. List anything that looks like a bug separately.
 - [ ] Your `CLAUDE.md` has a definition of done the agent runs itself
 - [ ] You've caught the agent weakening a test, and fixed your process so it can't happen quietly
 - [ ] You use characterisation tests before touching legacy code
+- [ ] You've deepened one existing shallow cluster with `/improve-codebase-architecture`: RFC approved, boundary tests green, old shallow tests deleted on purpose
 
 → Next: [L5 — Extend](05-extend.md)

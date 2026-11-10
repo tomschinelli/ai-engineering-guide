@@ -49,7 +49,7 @@ flowchart LR
 | 21 | Give the agent a way to check itself: build, vet, tests, running app | [L4](../levels/04-test-first.md) |
 | 22 | Tests first for new behaviour. Review the tests harder than the code. | [L4](../levels/04-test-first.md) |
 | 23 | Commit tests before implementing so any test tampering shows up | [L4](../levels/04-test-first.md) |
-| 24 | Prefer deep modules: agree on a small public interface first, test only through it | [L4](../levels/04-test-first.md) |
+| 24 | Prefer deep modules: agree on a small public interface first, test only through it. Deepen existing shallow code with `/improve-codebase-architecture` | [L4](../levels/04-test-first.md#3-deep-modules-one-small-interface-one-test-boundary) |
 | 25 | Demand evidence: "show me the output", not just "done" | [L1](../levels/01-prompt-verify.md) |
 | 26 | Independent review in fresh context (subagent / second session / CI) | [L6](../levels/06-scale.md) |
 | 27 | Enforce what must always happen with hooks (format, guards) | [L5](../levels/05-extend.md) |

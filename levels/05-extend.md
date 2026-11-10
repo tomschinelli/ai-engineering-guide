@@ -48,6 +48,9 @@ A skill is a folder with a `SKILL.md`: instructions (and optionally scripts or r
     SKILL.md
   grilling/
     SKILL.md
+  improve-codebase-architecture/   # vendored: deepen shallow modules
+    SKILL.md
+    REFERENCE.md
 ```
 
 ```markdown
@@ -65,7 +68,8 @@ description: Implement a change test-first. Use when adding new behaviour or fix
 7. Summarise: what changed, test output, anything left open.
 ```
 
-Ready-made skills in [`templates/.claude/skills/`](../templates/.claude/skills/): `spec`, `tdd`, `ship`, plus [`grill-me`](https://claudemarketplaces.com/skills/mattpocock/skills/grill-me) (vendored with `grilling`).
+Ready-made skills in [`templates/.claude/skills/`](../templates/.claude/skills/): `spec`, `tdd`, `ship`, plus [`grill-me`](https://claudemarketplaces.com/skills/mattpocock/skills/grill-me) (vendored with `grilling`) and
+[`improve-codebase-architecture`](../templates/.claude/skills/improve-codebase-architecture/) (deepen shallow modules, see [L4](04-test-first.md#deepening-existing-code-improve-codebase-architecture)).
 
 **What makes a good skill:**
 
