@@ -1,4 +1,4 @@
-# ai-engineering
+# ai-engineering-guide
 
 A personal zero-to-hero guide for AI-assisted development with Claude Code. Markdown only, no code to build.
 
