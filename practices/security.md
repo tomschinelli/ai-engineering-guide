@@ -69,6 +69,7 @@ flowchart LR
 | Normal interactive work in your repo | Permission prompts + allow/deny lists |
 | Longer autonomous runs (auto mode) | Claude Code's built-in sandbox (`/sandbox`): filesystem/network restrictions for commands |
 | `bypassPermissions`, untrusted repos, CI | **Container / VM / devcontainer** with no access to your real credentials |
+| AFK loops over many tickets (Ralph) | **Container sandbox** per run, on a feature branch, with scoped tokens. See [L7](../levels/07-automate.md#3-afk-loop-work-through-a-board-in-a-sandbox-ralph) |
 
 ---
 

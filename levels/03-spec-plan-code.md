@@ -103,6 +103,36 @@ What a good plan looks like ([`templates/plan.md`](../templates/plan.md)):
 - **Tests** each step adds
 - **Open questions / risks**, called out instead of silently decided
 
+### Slice vertically, not horizontally
+
+Agents like to plan by layer: "1. models, 2. store, 3. handlers, 4. tests". Nothing works until the last step, and
+step 1 can't be checked on its own. Ask for **vertical slices** (also called *tracer bullets*) instead: each step cuts a thin path
+through **every** layer and ends in behaviour you can demo or test.
+
+```
+ HORIZONTAL (avoid)                        VERTICAL (prefer)
+ ┌──────────────────────────────┐          ┌────────┬────────┬────────┐
+ │ 1. migration + model         │          │ 1      │ 2      │ 3      │
+ ├──────────────────────────────┤          │ create │ expired│ cleanup│
+ │ 2. store methods             │          │ with   │ → 410  │ job    │
+ ├──────────────────────────────┤          │ expiry │        │        │
+ │ 3. HTTP handlers             │          │ (db→   │ (store→│ (store→│
+ ├──────────────────────────────┤          │ api→   │ api→   │ cron→  │
+ │ 4. tests                     │          │ test)  │ test)  │ test)  │
+ └──────────────────────────────┘          └────────┴────────┴────────┘
+ works only after step 4                   each column is green and demoable
+```
+
+```text
+Re-cut the plan into vertical slices: each step is a thin end-to-end path
+(migration → store → handler → test) that is demoable on its own and fits one
+fresh session. Put any prefactoring first. For each step, list which earlier
+steps it's blocked by.
+```
+
+Why it matters: every step stays verifiable (L4), you can stop after any slice and still have working software, and
+slices whose blockers are done can run **in parallel**. [L6](06-scale.md#4-from-plan-to-a-board-vertical-tickets-for-parallel-agents) turns them into tickets on a board.
+
 **Review the plan like a design review.** Push back:
 "Why a new package?", "Step 3 is too big, split it", "Use the existing clock interface for testability."
 Save approved plans for bigger features: `docs/plans/link-expiry.md`. They survive `/clear` and context compaction.
@@ -194,9 +224,9 @@ gitGraph
     branch feat/link-expiry
     checkout feat/link-expiry
     commit id: "spec + plan"
-    commit id: "step 1: model"
-    commit id: "step 2: store"
-    commit id: "step 3: handler"
+    commit id: "slice 1: create w/ expiry"
+    commit id: "slice 2: expired 410"
+    commit id: "slice 3: cleanup job"
     checkout main
     merge feat/link-expiry id: "PR merged"
 ```
@@ -219,6 +249,7 @@ Feature: **link expiry** for shorty (links can have `expires_at`; expired links 
 
 1. Interview-style spec → `docs/specs/link-expiry.md`
 2. Plan mode → plan → review → push back at least once → `docs/plans/link-expiry.md`
+   - Check the steps are vertical slices. If the agent planned by layer, re-cut it.
    - *Optional:* `/grill-me` on spec + plan, write the decisions back, and check that the decisions landed in the right file
 3. Branch, implement step by step with commits
 4. PR via `gh`, self-review on GitHub, merge
@@ -229,6 +260,7 @@ Feature: **link expiry** for shorty (links can have `expires_at`; expired links 
 
 - [ ] You default to plan mode for anything touching more than ~2 files
 - [ ] You've changed a plan before approving it
+- [ ] Your plans are cut into vertical slices, each one demoable on its own
 - [ ] Features have a spec with acceptance criteria and non-goals
 - [ ] Work goes through a branch + PR with one commit per step
 - [ ] You can resume a feature after `/clear` from the plan file

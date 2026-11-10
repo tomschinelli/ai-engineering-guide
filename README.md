@@ -63,7 +63,7 @@ flowchart TB
 | [L4](levels/04-test-first.md) | Test-First | Let tests be the agent's feedback loop | Verify |
 | [L5](levels/05-extend.md) | Extend | Skills, hooks, MCP, plugins: encode your process | Context, Verify |
 | [L6](levels/06-scale.md) | Scale | Subagents, worktrees, parallel sessions, legacy repos | Agent works |
-| [L7](levels/07-automate.md) | Automate | Headless runs, CI, scheduled agents, Agent SDK | Ship |
+| [L7](levels/07-automate.md) | Automate | Headless runs, AFK loops, CI, scheduled agents, Agent SDK | Ship |
 
 **Cross-cutting practices** (read alongside any level):
 

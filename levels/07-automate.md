@@ -1,4 +1,4 @@
-# L7 — Automate
+AFK# L7 — Automate
 
 **Goal:** Run the agent **without you at the keyboard**: in scripts, in CI, on a schedule, or inside your own tools.
 The same principles apply. Only the trigger changes.
@@ -11,12 +11,13 @@ The same principles apply. Only the trigger changes.
 
 ```mermaid
 flowchart LR
-    H[Headless CLI<br/>claude -p] --> CI[CI / GitHub Actions<br/>review, @claude] --> SCH[Scheduled agents<br/>routines, cron] --> SDK[Agent SDK<br/>your own agents]
+    H[Headless CLI<br/>claude -p] --> AFK[AFK loop<br/>sandboxed, per ticket] --> CI[CI / GitHub Actions<br/>review, @claude] --> SCH[Scheduled agents<br/>routines, cron] --> SDK[Agent SDK<br/>your own agents]
 ```
 
 | Rung | Trigger | Typical use |
 |---|---|---|
 | Headless `claude -p` | You / a script | Fan-out, batch edits, pre-commit checks |
+| AFK loop (Ralph) | You start it, it runs N rounds | Work through a board of AFK tickets, one per round, in a sandbox |
 | GitHub Actions | PR, issue, `@claude` comment | Automated PR review, issue → PR |
 | Scheduled | Cron / schedule | Nightly dependency check, weekly tech-debt report |
 | Agent SDK | Your code | Custom internal agents and tools |
@@ -64,11 +65,98 @@ go test ./...
 - **Run in a sandbox/container** when it can execute commands on untrusted input.
 
 > Once a script needs real logic (branching on results, custom tools, approval callbacks, structured output),
-> switch from bash + `claude -p` to the **Agent SDK** (section 5).
+> switch from bash + `claude -p` to the **Agent SDK** (section 6).
 
 ---
 
-## 3. GitHub Actions
+## 3. AFK loop: work through a board in a sandbox ("Ralph")
+
+The **Ralph Wiggum** pattern: run the same prompt headless in a loop. Each round starts with a **fresh context**,
+picks **one** ticket, implements it, verifies it, commits, and exits. The next round starts clean.
+State lives only in **git and the ticket files**, never in a long chat. You go AFK (away from keyboard) while it works through the board.
+
+Reference implementation: Matt Pocock's AI Engineer workshop 2026,
+[`mattpocock/ai-engineer-workshop-2026-project`](https://github.com/mattpocock/ai-engineer-workshop-2026-project), folder `ralph/`.
+The repo has **no license file**, so read it there instead of copying it into your project.
+
+### The pipeline
+
+```mermaid
+flowchart LR
+    G["/grill-me<br/>idea → decisions"] --> PRD["write-a-prd<br/>PRD"]
+    PRD --> TIX["prd-to-issues<br/>vertical slices<br/>AFK / HITL"]
+    TIX --> B[("Board<br/>issues/*.md")]
+    B --> R["afk.sh N<br/>Docker sandbox loop"]
+    R -->|"1 ticket / round<br/>test + commit"| B
+    R -->|"NO MORE TASKS"| H["You review<br/>the commits"]
+    B -. HITL tickets .-> YOU[You, interactively]
+```
+
+```
+ /grill-me ─▶ PRD ─▶ prd-to-issues ─▶ BOARD (issues/*.md) ◀──────────────┐
+                     AFK / HITL           │                              │
+                                          ▼                              │
+                            afk.sh N: docker sandbox, claude --print     │
+                            pick 1 AFK ticket → /tdd → test + typecheck  │
+                            → commit → move ticket to issues/done/ ──────┘
+                                          │ all AFK done
+                                          ▼
+                            "<promise>NO MORE TASKS</promise>" ─▶ you review
+```
+
+The "kanban board" is just folders: open tickets in `issues/*.md`, finished ones moved to `issues/done/`.
+Only **AFK** tickets go into the loop. **HITL** tickets (architecture calls, design review) stay with you.
+Cut tickets as vertical slices ([L3](03-spec-plan-code.md#slice-vertically-not-horizontally)): each one must be done and
+testable on its own, or a round can't finish it.
+
+### What's in `ralph/`
+
+| File | Role |
+|---|---|
+| `once.sh` | One interactive round on your machine (`--permission-mode acceptEdits`). Use it to watch and tune the prompt first. |
+| `afk.sh <N>` | Up to **N** rounds of `docker sandbox run claude . -- --print --output-format stream-json …`. Each round gets the last 5 commits, all open tickets, and `prompt.md`. Stops early when the result contains `<promise>NO MORE TASKS</promise>`. |
+| `prompt.md` | AFK tickets only, **one per round**. Priority: critical bugfix → dev infrastructure → tracer bullets → polish → refactors. Implement with `/tdd`, run the feedback loops (tests + typecheck), commit with decisions/files/notes for the next round, then move the ticket to `done/` or add a progress note to it. |
+
+### Why it works
+
+| Idea | Effect |
+|---|---|
+| Fresh context per round | No context rot, no compaction. Every round is a clean, focused session. |
+| One ticket per round | Small diffs, one commit per ticket, easy to revert. |
+| Commits and ticket notes as memory | The hand-off between rounds is written down and reviewable. |
+| Tests + typecheck in the prompt | The loop is only as good as its feedback ([L4](04-test-first.md)). |
+| `N` iterations + a stop word | Bounded cost, and a clean exit when the board is empty. |
+| Docker sandbox | The agent runs without permission prompts, but in a box instead of on your machine. |
+
+### Before you run it on shorty
+
+- **The scripts target a Node/TypeScript project.** `prompt.md` runs `npm run test` and `npm run typecheck`.
+  In a Go project the feedback loops are `go test ./...` and `go vet ./...`. Write your own `prompt.md` for that.
+  Don't present it as the workshop file.
+- **The skills must match the loop:**
+  - The workshop repo's `prd-to-issues` writes **local** `issues/NNN-*.md` files. The one in
+    [`templates/.claude/skills/prd-to-issues/`](../templates/.claude/skills/prd-to-issues/) is the upstream version and creates
+    **GitHub issues**. Use the variant that matches where your board lives. `afk.sh` reads `issues/*.md`.
+  - [`templates/.claude/skills/tdd/`](../templates/.claude/skills/tdd/) **stops and waits for your approval** of the tests.
+    That's right for interactive work but blocks an AFK round. Don't point an AFK prompt at it.
+- **`docker sandbox`** is a Docker Desktop feature (Docker Sandboxes). Check Docker's docs for setup, auth, and what gets mounted.
+- **Start with `once.sh`**, then `afk.sh 3`, then larger N once the commits look right.
+
+### Security: what the sandbox does and doesn't do
+
+| Protected | Not protected |
+|---|---|
+| Your host filesystem, dotfiles, SSH keys, real credentials | Secrets you pass **into** the sandbox (API key, GitHub token): scope them to the minimum |
+| Destructive commands (`rm -rf`, global installs) | **Network egress**: without an allowlist/firewall the agent can still send data out |
+| Your other projects | **Prompt injection**: ticket text goes into the prompt as-is. Whoever writes tickets steers the agent |
+| | **What it commits**: the loop commits to the current branch |
+
+Run the loop on a **feature branch, never `main`**. Review the commits and merge through a PR with CI, the same human gate as
+everywhere else (section 7). The sandbox makes it safe to let the agent *run*. It doesn't make the output safe to *merge*.
+
+---
+
+## 4. GitHub Actions
 
 Set it up from a session with `/install-github-app` (installs the GitHub app and adds the API key secret),
 or by hand with [`templates/.github/workflows/claude.yml`](../templates/.github/workflows/claude.yml).
@@ -135,11 +223,11 @@ Rules that keep it sane:
   after grilling, ask the agent to draft the new body and the decisions comment, and confirm before it posts.
 - **The agent asks before posting.** Creating or editing an issue publishes to everyone who can see the tracker.
 - **Issue text is untrusted input.** Only the body you wrote is the spec. Comments from others can contain prompt
-  injection, so don't let an agent that reads them hold secrets or push to `main` (see section 6 and [Security](../practices/security.md)).
+  injection, so don't let an agent that reads them hold secrets or push to `main` (see section 7 and [Security](../practices/security.md)).
 
 ---
 
-## 4. Scheduled agents
+## 5. Scheduled agents
 
 For recurring work, run the agent on a schedule:
 
@@ -155,7 +243,7 @@ Good scheduled jobs produce **reports or PRs, never direct changes to main**:
 
 ---
 
-## 5. Claude Agent SDK: build your own agents
+## 6. Claude Agent SDK: build your own agents
 
 The Agent SDK is Claude Code packaged as a **library**: the same agent loop, built-in tools (Read, Edit, Bash, Grep, …),
 permissions, hooks, subagents, MCP, sessions, and your project's `.claude/` skills and `CLAUDE.md`, driven from your own code.
@@ -327,6 +415,7 @@ flowchart TD
 | Need | Use |
 |---|---|
 | One-off or scripted coding tasks | `claude -p` |
+| Work through a board of small, well-tested tickets while you're away | AFK loop in a sandbox (section 3) |
 | PR/issue automation | GitHub Action |
 | Your own internal tool that needs a coding/filesystem agent (triage bot, test writer, migration assistant) | **Agent SDK (TypeScript)** |
 | A program in another language that needs a coding agent | `claude -p --output-format json` as a subprocess |
@@ -335,7 +424,7 @@ flowchart TD
 
 ---
 
-## 6. Guardrails for unattended agents
+## 7. Guardrails for unattended agents
 
 ```mermaid
 flowchart TD
@@ -356,12 +445,15 @@ More in [Security & permissions](../practices/security.md).
 
 ---
 
-## 7. Exercise
+## 8. Exercise
 
 1. Write a headless script that runs `/code-review`-style review on `git diff main...HEAD` and saves it as `review.md`.
 2. Add [`templates/.github/workflows/claude.yml`](../templates/.github/workflows/claude.yml) to shorty, open a PR, see the review, and try an `@claude` comment.
-3. Set up one scheduled job (govulncheck or dependency updates) that opens an issue or PR.
-4. Build the TypeScript triage agent (Example 1) in `tools/agents/`, run it against shorty with a deliberately broken test,
+3. Run the AFK loop pattern (section 3) on shorty: cut a small feature into 2–3 AFK tickets in `issues/`, write a Go
+   `prompt.md` (`go test ./...`, `go vet ./...`), do one round interactively, then a bounded sandboxed run on a feature branch.
+   Review the commits like a PR.
+4. Set up one scheduled job (govulncheck or dependency updates) that opens an issue or PR.
+5. Build the TypeScript triage agent (Example 1) in `tools/agents/`, run it against shorty with a deliberately broken test,
    then extend it with one narrow custom tool and a `canUseTool` gate (Example 2).
 
 ---
@@ -369,6 +461,7 @@ More in [Security & permissions](../practices/security.md).
 ## Level up when… (you're there)
 
 - [ ] Every PR gets an automated review before you look at it
+- [ ] You can let a sandboxed loop work through AFK tickets on a branch and review its commits before merging
 - [ ] Repetitive maintenance runs on a schedule and reports through issues/PRs
 - [ ] All automation runs with least privilege, bounded turns, and a human merge gate
 - [ ] You can choose between `claude -p`, Actions, routines, Agent SDK and the raw API for a given problem

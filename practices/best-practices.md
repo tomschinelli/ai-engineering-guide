@@ -59,7 +59,7 @@ flowchart LR
 |---|---|---|
 | 27 | Branch + PR even when solo. Self-review on GitHub. | [L3](../levels/03-spec-plan-code.md) |
 | 28 | CI runs tests/lint and an automated review. A human merges. | [L7](../levels/07-automate.md) |
-| 29 | Automation gets least privilege, bounded turns, sandboxing | [L7](../levels/07-automate.md) |
+| 29 | Automation gets least privilege, bounded turns, sandboxing. AFK loops run in a container on a branch. | [L7](../levels/07-automate.md) |
 | 30 | Encode repeated workflows as skills, and share them as plugins | [L5](../levels/05-extend.md) |
 
 ## Always

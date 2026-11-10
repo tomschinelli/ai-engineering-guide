@@ -16,3 +16,10 @@ A personal zero-to-hero guide for AI-assisted development with Claude Code. Mark
 - Claude Code features change fast: prefer stable concepts, and say "check `--help`/docs" for version-specific flags.
 - When adding a practice, link it from `practices/best-practices.md` and the relevant level.
 - Keep relative links working when moving files.
+
+## External references and skills (strict)
+- Use a reference **exactly as the user gives it**: same URL, same skill name, same version/content. Don't swap it for a
+  "newer", renamed, or similar one. If it looks outdated, renamed or unreachable, say so and ask. Don't substitute on your own.
+- **Never create your own skill from existing ones.** No adapting, merging, renaming, trimming or "improving" a third-party skill.
+  Third-party skills are vendored **verbatim** from the given source, plus a `SOURCE.md` that only records where it came from.
+- Guide text may explain how to *use* a referenced skill. It must not redefine what the skill does.
