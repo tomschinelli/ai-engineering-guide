@@ -67,7 +67,7 @@ ASCII fallback (one session, left to right):
 |---|---|---|---|
 | System prompt + built-in tools | Session start | Fixed | Nothing to do |
 | MCP tool definitions | Session start | One block per server | Remove servers you don't use |
-| `CLAUDE.md`, memory, skill descriptions | Session start | Fixed, but **in every session** | Keep `CLAUDE.md` lean. Link docs, don't paste them. |
+| `CLAUDE.md`, memory, skill descriptions | Session start | Fixed, but **in every session** | Keep `CLAUDE.md` lean. Mention docs by plain path + "read when…". Don't paste or `@`-import them: imports load in full every session. |
 | Your prompts and `@files` | Every turn | Linear | Point to exact files. Don't paste whole docs. |
 | Files the agent reads | Each read | Big jumps. Re-reads after edits count again. | Name files up front. Use subagents for wide searches. |
 | Command output (tests, builds, grep) | Each run | **Fastest grower**. One noisy log can be thousands of lines. | `tail -50`, `go test -run TestX`, quiet flags |
@@ -109,7 +109,7 @@ flowchart TD
 | Subagents for exploration | Their reading doesn't land in your context |
 | Trim noisy output: `go test ./... 2>&1 \| tail -50`, `-run TestX` | Logs are context-hungry |
 | Remove unused MCP servers | Each one adds tool definitions to every session |
-| Keep `CLAUDE.md` lean | It's loaded into **every** session |
+| Keep `CLAUDE.md` lean: only what the agent would get wrong or waste effort rediscovering, no `@` imports of docs ([L2](../levels/02-project-memory.md#only-what-the-agent-cant-know-by-itself)) | It's loaded into **every** session |
 
 ---
 

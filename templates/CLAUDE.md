@@ -1,3 +1,9 @@
+<!--
+Only what the agent would get wrong, or would waste effort finding out again every session:
+commands, boundaries, gotchas, definition of done, a short map of what isn't obvious from the code.
+Leave out what's in go.mod, folder listings, generic advice, and style the linter enforces.
+Reference deep docs by plain path + "read when…". Don't @-import them (imports load in full every session).
+-->
 # <Project name>
 
 <One or two sentences: what this is and who uses it.>
@@ -11,19 +17,16 @@
 - Format: `gofmt -w .` (a hook runs this after edits)
 
 ## Architecture
-- `cmd/<app>/`: main, wiring only
-- `internal/http/`: handlers, routing, middleware
-- `internal/store/`: persistence behind the `Store` interface
-- `internal/<domain>/`: business logic, no HTTP or SQL here
-- Flow: router → handler → domain service → store
-- More detail: docs/architecture.md (read when changing structure)
+- Flow: router → handler (`internal/http`) → domain service (`internal/<domain>`) → `Store` interface (`internal/store`)
+- `cmd/<app>/` is wiring only. Domain packages never import HTTP or SQL.
+- docs/architecture.md: read before adding a package or changing how packages depend on each other
 
 ## Conventions
 - Errors: wrap with `fmt.Errorf("doing x: %w", err)`; compare with `errors.Is/As`, never strings.
 - Handlers return errors; `internal/http/respond.go` maps them to status codes.
 - No global state. Pass dependencies via constructors.
 - Time and randomness are injected (`internal/clock`) so tests are deterministic.
-- Prefer stdlib. Ask before adding a dependency.
+- Prefer stdlib.
 - Simplest solution that works. No new abstractions unless asked.
 - Deep modules: small exported API, behaviour hidden behind it. Don't export something just to test it.
 
@@ -47,7 +50,11 @@
 - Specs and plans are working files in .scratch/specs/ and .scratch/plans/ (gitignored). Never commit them, and don't
   treat an old one as current: the code, tests and docs/ win. Templates: docs/templates/.
 
+## Boundaries
+- Ask before adding a dependency.
+- Never edit an applied migration in `migrations/`; add a new one.
+- <e.g. `internal/legacy/` is frozen. Bug fixes only, no refactors.>
+
 ## Gotchas
 <!-- Add a line each time the agent makes a mistake that will recur. Delete lines that no longer apply. -->
 - <e.g. Integration tests need `docker compose up -d db` first.>
-- <e.g. `internal/legacy/` is frozen. Bug fixes only, no refactors.>
