@@ -70,7 +70,132 @@ Do not modify the test file. Run `go test ./... -race` and show the output.
 
 ---
 
-## 3. Go testing conventions to put in CLAUDE.md
+## 3. Deep modules: one small interface, one test boundary
+
+A **deep module** hides a lot of behaviour behind a **small interface**. A **shallow module** has an interface
+almost as complex as what it does (the term comes from John Ousterhout, *A Philosophy of Software Design*).
+
+For TDD with an agent this matters a lot: **your tests sit on the interface.** The smaller the interface, the
+more of the module one test boundary wraps.
+
+```mermaid
+flowchart LR
+    subgraph Shallow["Shallow: many small exported pieces"]
+      direction TB
+      T1[test] --> V[Validator]
+      T2[test] --> G[CodeGenerator]
+      T3[test + mocks] --> C[CollisionChecker]
+      T4[test + mocks] --> R[Repo]
+    end
+    subgraph Deep["Deep: one small interface"]
+      direction TB
+      T[tests] --> API["Service<br/>Shorten · Resolve"]
+      API -.hidden.-> I["validate · generate code ·<br/>retry collisions · expiry · storage"]
+    end
+```
+
+```
+ SHALLOW                                  DEEP
+ test ─▶ Validator                        tests ─▶ ┌─ Shorten() ─ Resolve() ─┐  ◀ test boundary
+ test ─▶ CodeGenerator                             │ validate, generate code,│
+ test ─▶ CollisionChecker (mocks)                  │ retry, expiry, storage  │  ◀ free to change
+ test ─▶ Repo (mocks)                              └─────────────────────────┘
+```
+
+### Why it matters with an agent
+
+| Shallow modules | Deep modules |
+|---|---|
+| Tests mirror the implementation: one test file per helper, mocks everywhere | Tests describe **behaviour** through the public API |
+| Every refactor breaks tests, so the agent "fixes" tests (tampering by another name) | The agent can rewrite internals freely, tests stay green and still mean something |
+| You review many test files and the wiring between them | You review **one interface + one test file**. That's the spec. |
+| Bugs live in the gaps between pieces, where no test looks | The whole module, gaps included, sits inside the test boundary |
+| Lots of interface for the agent to keep in context | Small interface = less context, fewer ways to misuse it |
+
+Agents drift toward shallow code by default: they add an exported helper, an interface and a mock for every
+step, because each piece is easy to generate and test on its own. You have to steer them toward deep modules.
+
+### shorty example
+
+```go
+// package shortener: the only exported surface
+type Service struct{ /* unexported fields */ }
+
+func New(store Store, clk clock.Clock) *Service
+func (s *Service) Shorten(ctx context.Context, rawURL string, ttl time.Duration) (Link, error)
+func (s *Service) Resolve(ctx context.Context, code string) (string, error)
+
+var ErrInvalidURL, ErrNotFound, ErrExpired error
+```
+
+URL validation, code generation, collision retry and expiry checks are all **unexported**. The tests live in
+`package shortener_test` and only call `Shorten`/`Resolve`. They use a real in-memory `Store` and the fake clock.
+Fakes go only at true external edges (DB, network, time), never between internal pieces.
+
+### How to guide Claude toward deep modules
+
+**1. Design the interface before the tests.** Put it in the spec/plan (L3) and make it the first thing you review.
+
+```text
+Before writing any tests or code: propose the public interface for the shortener
+package. Goal: a deep module, the smallest interface that covers the acceptance criteria
+in @docs/specs/link-expiry.md. Hide validation, code generation, retries and expiry
+behind it. Show me 2 alternative designs, say which is smaller/simpler for callers,
+and list what stays unexported. No code yet.
+```
+
+**2. Review the interface like you review tests.** Ask: could a caller do everything with fewer methods/params?
+Does any exported name only exist so it can be tested?
+
+**3. Write the tests against the interface only.**
+
+```text
+Write table-driven tests in internal/shortener/shortener_test.go using package
+shortener_test. Test ONLY through the exported API (New, Shorten, Resolve and the
+error values). No tests for internal helpers. Use the in-memory store and fake clock,
+no mocks of internal parts. Confirm they fail.
+```
+
+**4. Implement behind the interface.**
+
+```text
+Implement so the tests pass. Don't change the test file and don't add exported
+identifiers beyond the agreed interface. Put helpers in unexported functions.
+No new Go interfaces unless there are two real implementations.
+```
+
+**5. Deepen in the refactor step.**
+
+```text
+Review internal/shortener for shallow design: pass-through methods, exported things
+only used inside the package, interfaces with one implementation, tiny types that
+just forward calls. Propose merges that shrink the interface. Tests must stay unchanged and green.
+```
+
+**Put it in `CLAUDE.md`** so you don't have to repeat it:
+
+```markdown
+## Design
+- Prefer deep modules: small exported API, rich behaviour hidden behind it.
+- Agree on a package's public interface before writing tests or code.
+- Test through the public API (`package foo_test`). No tests for unexported helpers.
+- Don't export something just to test it. Don't add an interface with one implementation.
+- Fakes only at external edges (DB, network, time).
+```
+
+### Signs the agent is going shallow
+
+| Symptom | Fix |
+|---|---|
+| New exported funcs/types in a diff you didn't agree on | "Unexport X, it's not part of the agreed interface" |
+| Tests in `package foo` reaching into internals | "Move to `package foo_test`, test through the public API" |
+| An interface + mock per helper | "Delete the interface, use the concrete type; fake only the store" |
+| A refactor that needs test changes | The boundary is wrong or the tests are too fine-grained. Stop and rethink the interface. |
+| Methods that just call one other method | "Merge pass-through layers" |
+
+---
+
+## 4. Go testing conventions to put in CLAUDE.md
 
 ```markdown
 ## Testing
@@ -84,7 +209,7 @@ Do not modify the test file. Run `go test ./... -race` and show the output.
 
 ---
 
-## 4. Verification beyond unit tests
+## 5. Verification beyond unit tests
 
 The rule: **give the agent a way to see what you would see.**
 
@@ -109,7 +234,7 @@ Cheap checks at the bottom run constantly. Expensive ones at the top run before 
 
 ---
 
-## 5. The AI review checklist
+## 6. The AI review checklist
 
 Use [`templates/review-checklist.md`](../templates/review-checklist.md) for every PR. At this level, add:
 
@@ -118,13 +243,14 @@ Use [`templates/review-checklist.md`](../templates/review-checklist.md) for ever
 - [ ] Would the tests **fail** if the feature broke? (Try it: break the code on purpose and run them.)
 - [ ] Were any existing tests weakened, skipped (`t.Skip`), or deleted?
 - [ ] Is there test logic that "can't fail" (assertions on mocks only, `if err != nil { return }` in tests)?
+- [ ] Do tests go through the public API only? Did the diff export anything new that wasn't agreed?
 
 > **Mutation spot-check:** sometimes ask the agent to *"introduce a subtle bug in the implementation and check
 > whether the tests catch it, then revert."* It's a quick way to test your tests.
 
 ---
 
-## 6. Legacy code: tests first, then change
+## 7. Legacy code: tests first, then change
 
 For legacy repos without tests, don't refactor blind:
 
@@ -143,11 +269,12 @@ the code. List anything that looks like a bug separately.
 
 ---
 
-## 7. Exercise
+## 8. Exercise
 
 1. Add **click counting** to shorty with full TDD: criteria → tests → you review → red → commit → implement → green.
 2. Do the mutation spot-check on it.
-3. In your legacy repo, pick one untested function you'll need to change soon and write characterisation tests for it.
+3. Before writing tests, have Claude propose the public interface of the package it touches (two designs). Pick the smaller one, then test only through it.
+4. In your legacy repo, pick one untested function you'll need to change soon and write characterisation tests for it.
 
 ---
 
@@ -155,6 +282,7 @@ the code. List anything that looks like a bug separately.
 
 - [ ] For new behaviour, tests come first by default
 - [ ] You review tests more carefully than implementation
+- [ ] You agree on a small public interface first and test through it, not through internal helpers
 - [ ] Your `CLAUDE.md` has a definition of done the agent runs itself
 - [ ] You've caught the agent weakening a test, and fixed your process so it can't happen quietly
 - [ ] You use characterisation tests before touching legacy code

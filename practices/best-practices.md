@@ -49,18 +49,19 @@ flowchart LR
 | 21 | Give the agent a way to check itself: build, vet, tests, running app | [L4](../levels/04-test-first.md) |
 | 22 | Tests first for new behaviour. Review the tests harder than the code. | [L4](../levels/04-test-first.md) |
 | 23 | Commit tests before implementing so any test tampering shows up | [L4](../levels/04-test-first.md) |
-| 24 | Demand evidence: "show me the output", not just "done" | [L1](../levels/01-prompt-verify.md) |
-| 25 | Independent review in fresh context (subagent / second session / CI) | [L6](../levels/06-scale.md) |
-| 26 | Enforce what must always happen with hooks (format, guards) | [L5](../levels/05-extend.md) |
+| 24 | Prefer deep modules: agree on a small public interface first, test only through it | [L4](../levels/04-test-first.md) |
+| 25 | Demand evidence: "show me the output", not just "done" | [L1](../levels/01-prompt-verify.md) |
+| 26 | Independent review in fresh context (subagent / second session / CI) | [L6](../levels/06-scale.md) |
+| 27 | Enforce what must always happen with hooks (format, guards) | [L5](../levels/05-extend.md) |
 
 ## Ship
 
 | # | Practice | Level |
 |---|---|---|
-| 27 | Branch + PR even when solo. Self-review on GitHub. | [L3](../levels/03-spec-plan-code.md) |
-| 28 | CI runs tests/lint and an automated review. A human merges. | [L7](../levels/07-automate.md) |
-| 29 | Automation gets least privilege, bounded turns, sandboxing. AFK loops run in a container on a branch. | [L7](../levels/07-automate.md) |
-| 30 | Encode repeated workflows as skills, and share them as plugins | [L5](../levels/05-extend.md) |
+| 28 | Branch + PR even when solo. Self-review on GitHub. | [L3](../levels/03-spec-plan-code.md) |
+| 29 | CI runs tests/lint and an automated review. A human merges. | [L7](../levels/07-automate.md) |
+| 30 | Automation gets least privilege, bounded turns, sandboxing. AFK loops run in a container on a branch. | [L7](../levels/07-automate.md) |
+| 31 | Encode repeated workflows as skills, and share them as plugins | [L5](../levels/05-extend.md) |
 
 ## Always
 

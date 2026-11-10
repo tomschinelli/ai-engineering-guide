@@ -25,9 +25,11 @@
 - Time and randomness are injected (`internal/clock`) so tests are deterministic.
 - Prefer stdlib. Ask before adding a dependency.
 - Simplest solution that works. No new abstractions unless asked.
+- Deep modules: small exported API, behaviour hidden behind it. Don't export something just to test it.
 
 ## Testing
 - Table-driven tests with `t.Run`. HTTP via `httptest`.
+- Test through the public API (`package foo_test`). Fakes only at external edges (DB, network, time).
 - New behaviour → tests first (see /tdd skill).
 - Never modify or skip existing tests to make them pass. Fix the code or ask.
 

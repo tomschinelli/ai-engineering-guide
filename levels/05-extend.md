@@ -57,11 +57,12 @@ description: Implement a change test-first. Use when adding new behaviour or fix
 ---
 
 1. Restate the behaviour as acceptance criteria. Ask if anything is ambiguous.
-2. Write failing table-driven tests. Do not implement yet.
-3. Run `go test` and show they fail for the right reason. STOP and wait for approval.
-4. Implement the minimal code to pass. Never edit the test files from step 2.
-5. Run `go test ./... -race && go vet ./...`. Iterate until green.
-6. Summarise: what changed, test output, anything left open.
+2. Propose the smallest public interface (deep module) that covers the criteria. Wait for approval.
+3. Write failing table-driven tests through that public API only. Do not implement yet.
+4. Run `go test` and show they fail for the right reason. STOP and wait for approval.
+5. Implement the minimal code to pass. Never edit the test files from step 3. Export nothing beyond the agreed interface.
+6. Run `go test ./... -race && go vet ./...`. Iterate until green.
+7. Summarise: what changed, test output, anything left open.
 ```
 
 Ready-made skills in [`templates/.claude/skills/`](../templates/.claude/skills/): `spec`, `tdd`, `ship`, plus [`grill-me`](https://claudemarketplaces.com/skills/mattpocock/skills/grill-me) (vendored with `grilling`).
