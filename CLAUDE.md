@@ -15,6 +15,9 @@ A personal zero-to-hero guide for AI-assisted development with Claude Code. Mark
 - Agent tooling (Agent SDK, L7) in TypeScript, with Python as an alternative. Agents live separately from the Go project (`tools/agents/`).
 - Claude Code features change fast: prefer stable concepts, and say "check `--help`/docs" for version-specific flags.
 - When adding a practice, link it from `practices/best-practices.md` and the relevant level.
+- Never tell readers to commit work items. Backlog/tickets/RFCs → GitHub issues; specs, plans, TODO lists → gitignored
+  `.scratch/`, deleted after merge. Committed docs are knowledge only (CLAUDE.md, architecture, ADRs).
+  See `practices/best-practices.md#where-work-lives`.
 - Keep relative links working when moving files.
 
 ## External references and skills (strict)

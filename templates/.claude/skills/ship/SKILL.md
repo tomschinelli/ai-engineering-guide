@@ -13,11 +13,13 @@ disable-model-invocation: true
 3. Self-review `git diff main...HEAD` against templates/review-checklist.md
    (or docs/review-checklist.md if present). List any findings and fix the clear ones.
    Ask before fixing anything that changes behaviour.
-4. Check for leftovers: TODO/FIXME added in this branch, debug prints, commented-out code, new deps in go.mod.
+4. Check for leftovers: TODO/FIXME added in this branch, debug prints, commented-out code, new deps in go.mod,
+   and committed work files (specs, plans, TODO lists, `issues/*.md`). Those belong in `.scratch/` or a GitHub issue.
 5. Push the branch (`git push -u origin HEAD`). This asks for permission, which is expected.
 6. Open a PR with `gh pr create` containing:
    - **What**: 2–4 bullets
-   - **Why**: link to docs/specs/<feature>.md or the issue
+   - **Why**: the key decisions from the spec (.scratch/specs/<feature>.md) in a few bullets, plus `Closes #N` for the issue
    - **How it was verified**: commands + results
    - **Risks / follow-ups**
-7. Output the PR URL. Remind the user to self-review it on GitHub before merging.
+7. Output the PR URL. Remind the user to self-review it on GitHub before merging, and after merge to delete
+   the feature's files in `.scratch/` (anything worth keeping belongs in the PR, the issue, or an ADR).

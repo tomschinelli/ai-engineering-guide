@@ -38,6 +38,7 @@ flowchart TD
 | **Error swallowing** | `_ = err`, empty error branches, broad recovers | Review checklist, linters (`errcheck`), rule in CLAUDE.md |
 | **Duplicate code** | Agent writes a new helper instead of using the existing one | "Search for existing helpers first" in CLAUDE.md, point at them |
 | **Stale memory** | CLAUDE.md describes how the project worked six months ago | Treat CLAUDE.md as code: update it in the same PR as the change |
+| **Work files in the repo** | Old `issues/*.md`, `TODO.md`, specs and plans still committed. The agent follows them after the code has moved on. | Work items in GitHub issues; specs/plans in a gitignored `.scratch/`, deleted after merge ([Where work lives](best-practices.md#where-work-lives)) |
 | **Rule bloat** | 600-line CLAUDE.md, the agent ignores half of it | Prune. Keep only rules it would otherwise get wrong. Move the rest to skills/docs. |
 | **Permission fatigue** | Clicking "yes" to everything without reading | Allowlist safe commands so the prompts that remain matter |
 | **YOLO on the host** | `bypassPermissions` on your laptop with real credentials | Only in containers/VMs ([Security](security.md)) |

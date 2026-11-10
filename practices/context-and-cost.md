@@ -98,14 +98,14 @@ flowchart TD
     S -->|same task, nearing the dumb zone| CP["/compact keep: plan + current step"]
     S -->|went down a wrong path| RW["/rewind to before it"]
     S -->|need wide search| SA[Delegate to subagent]
-    S -->|long feature across sessions| PF[Plan file in docs/plans,<br/>/clear between steps]
+    S -->|long feature across sessions| PF[Plan file in .scratch/plans,<br/>/clear between steps]
 ```
 
 | Practice | Why |
 |---|---|
 | `/clear` between tasks | Leftover context from task A confuses task B |
 | `/compact` with a focus ("keep the plan and the failing test") | Summarises, keeps what matters |
-| Store state in **files** (plans, specs, TODO lists) | Survives clears, compaction, and new sessions |
+| Store working state in **files** in a gitignored `.scratch/` (plans, specs, TODO lists) | Survives clears, compaction, and new sessions, and isn't committed to go stale. Work items go in GitHub issues ([Where work lives](best-practices.md#where-work-lives)) |
 | Subagents for exploration | Their reading doesn't land in your context |
 | Trim noisy output: `go test ./... 2>&1 \| tail -50`, `-run TestX` | Logs are context-hungry |
 | Remove unused MCP servers | Each one adds tool definitions to every session |

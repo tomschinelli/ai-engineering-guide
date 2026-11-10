@@ -57,7 +57,7 @@ Prompts:
 
 ```text
 # step 1
-Based on the acceptance criteria in @docs/specs/link-expiry.md, write table-driven tests
+Based on the acceptance criteria in @.scratch/specs/link-expiry.md, write table-driven tests
 in internal/store/expiry_test.go. Do NOT write the implementation. Use the fake clock
 from internal/clock. Run them and confirm they fail for the right reason.
 
@@ -139,7 +139,7 @@ Fakes go only at true external edges (DB, network, time), never between internal
 ```text
 Before writing any tests or code: propose the public interface for the shortener
 package. Goal: a deep module, the smallest interface that covers the acceptance criteria
-in @docs/specs/link-expiry.md. Hide validation, code generation, retries and expiry
+in @.scratch/specs/link-expiry.md. Hide validation, code generation, retries and expiry
 behind it. Show me 2 alternative designs, say which is smaller/simpler for callers,
 and list what stays unexported. No code yet.
 ```
@@ -206,8 +206,9 @@ flowchart LR
     C -->|you pick one| P[Problem framing<br/>constraints + sketch]
     P --> D["3+ sub-agents:<br/>radically different interfaces"]
     D --> R[Comparison +<br/>recommendation]
-    R -->|you pick| RFC["issues/*.md<br/>refactor RFC"]
-    RFC --> T["Implement test-first<br/>/tdd or L7 board"]
+    R -->|you pick| RFC["issues/*.md<br/>refactor RFC (local)"]
+    RFC -->|gh issue create,<br/>delete local file| GI[GitHub issue]
+    GI --> T["Implement test-first<br/>/tdd or L7 board"]
 ```
 
 ```
@@ -216,7 +217,8 @@ flowchart LR
    │               └─ YOU pick one
    ├─ frame problem ─▶ 3+ sub-agents design different interfaces ─▶ recommendation
    │                                                                   └─ YOU pick
-   └─ writes issues/<name>.md (RFC) ─▶ implement it test-first (§2, /tdd, or the L7 board)
+   └─ writes issues/<name>.md (RFC) ─▶ move it to a GitHub issue, delete the file
+                                      ─▶ implement it test-first (§2, /tdd, or the L7 board)
 ```
 
 | Your step | What to do |
@@ -225,6 +227,7 @@ flowchart LR
 | Pick a candidate | Prefer clusters where bugs keep appearing *between* pieces, or where tests are mostly mocks. |
 | Pick an interface | Apply the review questions from step 2 above: fewer methods/params? anything exported only for tests? |
 | Review the RFC | It's a spec (L3): check the interface, the dependency strategy and the list of tests to delete *before* any code. |
+| Move it out of the repo | *"Create a GitHub issue from issues/<name>.md with `gh issue create --body-file`, show me the title first, then delete the local file."* |
 | Implement | Boundary tests first, then move code behind the interface, then delete the old shallow tests as a separate, visible commit. |
 
 **Map the skill's dependency categories (see its `REFERENCE.md`) to shorty:**
@@ -245,8 +248,10 @@ flowchart LR
   tests were green first. An unplanned test deletion is still tampering (§1).
 - **Go idiom.** "Port" in Go means a small interface defined by the *consumer*. Only add it at a real boundary
   (categories 3 and 4). Keep the "no interface with one implementation" rule everywhere else.
-- **Output location.** It writes a local `issues/*.md` file. That fits the folder board in [L7](07-automate.md#the-pipeline).
-  An RFC is usually a **HITL** ticket: cut it into AFK slices before a loop picks it up.
+- **Output location.** The skill writes a local `issues/*.md` file. Don't commit it: add `issues/` to `.gitignore`
+  and move the RFC into a GitHub issue (step above). A committed RFC goes stale as soon as the refactor lands
+  ([Where work lives](../practices/best-practices.md#where-work-lives)). An RFC is usually a **HITL** ticket: cut it
+  into AFK slices before the [L7 loop](07-automate.md#the-pipeline) picks it up.
 
 ---
 

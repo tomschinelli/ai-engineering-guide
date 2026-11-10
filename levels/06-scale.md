@@ -98,6 +98,8 @@ git worktree remove ../shorty-metrics   # after merge
 
 1. **Independent tasks only.** Different packages/features. If two tasks touch the same files, run them in sequence.
 2. **Each task fully specified up front** (spec + plan from L3). You won't be watching closely.
+   `.scratch/` is gitignored, so a new worktree **doesn't have it**. Copy the spec + plan into that worktree's
+   `.scratch/`, or put the spec in the GitHub issue and start the agent with *"Read `gh issue view 12`"*.
 3. **Strong verification** (L4), because tests are what make unattended work trustworthy.
 4. **Notification hook** (L5) so you know when a session needs you.
 5. **Your bottleneck is review.** 2–3 parallel streams is a realistic maximum for one person doing proper review.

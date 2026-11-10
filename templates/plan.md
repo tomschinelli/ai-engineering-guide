@@ -1,6 +1,10 @@
 # Plan: <feature name>
 
-- **Spec:** docs/specs/<feature>.md
+- **Issue:** #<N>
+- **Spec:** .scratch/specs/<feature>.md
+
+> Working file in `.scratch/plans/` (gitignored). Don't commit it. After merge, move lasting decisions into the
+> PR/issue (or an ADR in docs/decisions/) and delete this file.
 - **Branch:** feat/<feature>
 - **Status:** proposed | approved | in progress (step N) | done
 

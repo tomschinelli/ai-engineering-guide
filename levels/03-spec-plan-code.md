@@ -43,13 +43,18 @@ A plan is cheap to correct. Ten edited files are not.
 
 ## 2. Spec: what and why (you write it, with help)
 
-A spec is a short document **you own**. Use [`templates/spec.md`](../templates/spec.md). Store it in `docs/specs/`.
+A spec is a short document **you own**. Use [`templates/spec.md`](../templates/spec.md). Keep it in `.scratch/specs/`,
+a **gitignored** working folder (see [Where the spec lives](#where-the-spec-lives) below). One-time setup per project:
+
+```bash
+mkdir -p .scratch/specs .scratch/plans && echo ".scratch/" >> .gitignore
+```
 
 Let the agent help you write it, interview style:
 
 ```text
 I want to add link expiry to shorty. Interview me with questions until the requirements
-are clear, then write docs/specs/link-expiry.md using @docs/specs/TEMPLATE.md.
+are clear, then write .scratch/specs/link-expiry.md using @docs/templates/spec.md.
 Don't write any code.
 ```
 
@@ -64,24 +69,31 @@ For anything non-trivial, consider grilling the spec before you plan (see the bo
 
 ### Where the spec lives
 
-**Default: a file in the repo** (`docs/specs/<feature>.md`). It's your PRD.
+**Don't commit work items.** Specs, plans, TODO lists and tickets describe work that *will* be done. Once it's done,
+they go stale, but a committed file stays in the repo, and months later the agent reads it as if it were still true.
+So split the two jobs:
 
-- Versioned with the code: spec, plan and code land in the same PR, and `git log` explains *why* later.
-- Grilling changes show up as a reviewable diff.
-- The agent reads it with `@docs/specs/x.md`. No network, no `gh`, no comments from other people in its context.
-
-**Optional: a GitHub issue as a pointer.** If you like a backlog, open a short issue (idea, why, link to the spec)
-and close it from the PR with `Closes #12`. The issue tracks the work; the spec file stays the single source of truth.
+- **The work item is a GitHub issue.** Idea, why, and later a link to the PR. It's your backlog, and `Closes #12`
+  retires it when the PR merges. A closed issue doesn't sit in the agent's way.
+- **The spec and plan are working files in `.scratch/`** (gitignored). The agent reads them with `@.scratch/specs/x.md`.
+  No network, no `gh`, no comments from other people in its context. They survive `/clear` and compaction.
+- **When the PR is merged, condense and delete.** The final decisions go into the PR description or a closing comment
+  on the issue. A decision that should last (architecture, "why Postgres") becomes an ADR in `docs/decisions/`
+  ([L2](02-project-memory.md#4-beyond-claudemd-docs-as-context)). Then delete the scratch files.
 
 ```
-Issue #12 "Link expiry"       → 3 lines: idea, why, link to spec   (backlog, optional)
-docs/specs/link-expiry.md     → the spec / PRD, hardened by /grill-me  (source of truth)
-docs/plans/link-expiry.md     → the tasks
-PR "Closes #12"               → closes the loop
+Issue #12 "Link expiry"          → idea, why, final decisions          (work item, closed by the PR)
+.scratch/specs/link-expiry.md    → the spec / PRD, hardened by /grill-me  (temporary, gitignored)
+.scratch/plans/link-expiry.md    → the tasks                              (temporary, gitignored)
+PR "Closes #12"                  → closes the loop, explains the change
+docs/decisions/NNNN-*.md         → only for decisions that outlive the feature
 ```
 
-Want the issue itself to be the spec (team discussion, GitHub Projects, Jira, `@claude` issue → PR)? That's an
-advanced setup. See [L7: Issue tracker as the spec](07-automate.md#advanced-optional-issue-tracker-as-the-spec).
+What stays committed is **knowledge**: code, tests, CLAUDE.md, `docs/architecture.md`, ADRs. See
+[Where work lives](../practices/best-practices.md#where-work-lives).
+
+Want the issue body itself to be the spec (team discussion, GitHub Projects, Jira, `@claude` issue → PR)?
+See [L7: Issue tracker as the spec](07-automate.md#advanced-optional-issue-tracker-as-the-spec).
 
 ---
 
@@ -90,7 +102,7 @@ advanced setup. See [L7: Issue tracker as the spec](07-automate.md#advanced-opti
 Switch to **plan mode** (Shift+Tab) so the agent can only read.
 
 ```text
-Read @docs/specs/link-expiry.md. Explore how links are stored and served
+Read @.scratch/specs/link-expiry.md. Explore how links are stored and served
 (internal/store, internal/http). Then propose a step-by-step implementation plan:
 files to change, new types, migration of existing data, tests to add, risks.
 Think hard about edge cases.
@@ -131,11 +143,11 @@ steps it's blocked by.
 ```
 
 Why it matters: every step stays verifiable (L4), you can stop after any slice and still have working software, and
-slices whose blockers are done can run **in parallel**. [L6](06-scale.md#4-from-plan-to-a-board-vertical-tickets-for-parallel-agents) turns them into tickets on a board.
+slices whose blockers are done can run **in parallel**. [L7](07-automate.md#the-pipeline) turns them into tickets (GitHub issues) on a board.
 
 **Review the plan like a design review.** Push back:
 "Why a new package?", "Step 3 is too big, split it", "Use the existing clock interface for testability."
-Save approved plans for bigger features: `docs/plans/link-expiry.md`. They survive `/clear` and context compaction.
+Save approved plans for bigger features: `.scratch/plans/link-expiry.md`. They survive `/clear` and context compaction.
 
 ### 💡 Bonus (optional): grill to harden the spec and the plan
 
@@ -161,15 +173,15 @@ flowchart LR
 
 ```
                ┌──────────────────────────────────────┐
- spec draft ──▶│                                      │──▶ docs/specs/x.md  (what/why decisions)
+ spec draft ──▶│                                      │──▶ .scratch/specs/x.md  (what/why decisions)
                │  /grill-me: rounds of questions      │
- plan draft ──▶│                                      │──▶ docs/plans/x.md  (how decisions)
+ plan draft ──▶│                                      │──▶ .scratch/plans/x.md  (how decisions)
                └──────────────────────────────────────┘
                      unresolved ──▶ "Open questions" in the file it belongs to
 ```
 
 ```text
-/grill-me @docs/specs/link-expiry.md @docs/plans/link-expiry.md
+/grill-me @.scratch/specs/link-expiry.md @.scratch/plans/link-expiry.md
 ```
 
 When the frontier is empty and you've confirmed the shared understanding:
@@ -202,7 +214,7 @@ Tips:
 sequenceDiagram
     participant You
     participant Agent
-    You->>Agent: "Implement step 1 of docs/plans/link-expiry.md"
+    You->>Agent: "Implement step 1 of .scratch/plans/link-expiry.md"
     Agent->>Agent: edit, build, test
     Agent-->>You: diff + test output
     You->>You: review diff
@@ -212,7 +224,7 @@ sequenceDiagram
 
 - One step → verify → commit. Don't say "implement the whole plan" until you trust the process (and the tests).
 - If reality differs from the plan, **stop and update the plan** instead of improvising.
-- Long feature? `/clear` between steps and restart with *"Read docs/plans/x.md. Steps 1–3 are done. Do step 4."*
+- Long feature? `/clear` between steps and restart with *"Read .scratch/plans/x.md. Steps 1–3 are done. Do step 4."*
   This way each step starts in the [smart zone](../practices/context-and-cost.md#smart-zone-vs-dumb-zone) instead of at the end of a bloated session.
 
 ---
@@ -224,7 +236,6 @@ gitGraph
     commit id: "main"
     branch feat/link-expiry
     checkout feat/link-expiry
-    commit id: "spec + plan"
     commit id: "slice 1: create w/ expiry"
     commit id: "slice 2: expired 410"
     commit id: "slice 3: cleanup job"
@@ -232,13 +243,14 @@ gitGraph
     merge feat/link-expiry id: "PR merged"
 ```
 
-1. `git switch -c feat/link-expiry` (or ask the agent to).
-2. Commit spec + plan first.
-3. One commit per plan step.
-4. Ask the agent to open the PR: *"Push and open a PR with `gh pr create`. Summarise the change, link the spec, list how it was tested."*
-   If there's a backlog issue, include `Closes #12` so merging closes it.
-5. **Self-review the PR on GitHub** as if a stranger wrote it. Seeing the change in a different UI catches things you missed in the terminal.
-6. Optionally get an independent AI review in a **fresh session** (no shared bias): `/code-review` or *"Review this PR diff for bugs and missing tests."* More in [L6](06-scale.md).
+1. `git switch -c feat/link-expiry` (or ask the agent to). Spec and plan stay in `.scratch/`, not in a commit.
+2. One commit per plan step.
+3. Ask the agent to open the PR: *"Push and open a PR with `gh pr create`. Summarise the change and the key decisions
+   from the spec, list how it was tested, and include `Closes #12`."*
+4. **Self-review the PR on GitHub** as if a stranger wrote it. Seeing the change in a different UI catches things you missed in the terminal.
+5. Optionally get an independent AI review in a **fresh session** (no shared bias): `/code-review` or *"Review this PR diff for bugs and missing tests."* More in [L6](06-scale.md).
+6. After merge: anything from the spec worth keeping goes into the PR/issue (or an ADR), then
+   `rm .scratch/specs/link-expiry.md .scratch/plans/link-expiry.md`.
 
 Even solo, PRs give you a reviewable unit, a CI gate (L7), and history that explains *why*.
 
@@ -248,12 +260,14 @@ Even solo, PRs give you a reviewable unit, a CI gate (L7), and history that expl
 
 Feature: **link expiry** for shorty (links can have `expires_at`; expired links return 410).
 
-1. Interview-style spec → `docs/specs/link-expiry.md`
-2. Plan mode → plan → review → push back at least once → `docs/plans/link-expiry.md`
+1. Open a GitHub issue "Link expiry" (idea + why, 3 lines)
+2. Interview-style spec → `.scratch/specs/link-expiry.md`
+3. Plan mode → plan → review → push back at least once → `.scratch/plans/link-expiry.md`
    - Check the steps are vertical slices. If the agent planned by layer, re-cut it.
    - *Optional:* `/grill-me` on spec + plan, write the decisions back, and check that the decisions landed in the right file
-3. Branch, implement step by step with commits
-4. PR via `gh`, self-review on GitHub, merge
+4. Branch, implement step by step with commits
+5. PR via `gh` with `Closes #N`, self-review on GitHub, merge
+6. Condense the decisions into the PR/issue, delete the scratch files, and check `git status` shows no work files
 
 ---
 
@@ -263,7 +277,8 @@ Feature: **link expiry** for shorty (links can have `expires_at`; expired links 
 - [ ] You've changed a plan before approving it
 - [ ] Your plans are cut into vertical slices, each one demoable on its own
 - [ ] Features have a spec with acceptance criteria and non-goals
-- [ ] Work goes through a branch + PR with one commit per step
+- [ ] Work goes through an issue, a branch, and a PR with one commit per step
+- [ ] No specs, plans or TODO lists are committed; they live in `.scratch/` and are deleted after merge
 - [ ] You can resume a feature after `/clear` from the plan file
 
 → Next: [L4 — Test-First](04-test-first.md)

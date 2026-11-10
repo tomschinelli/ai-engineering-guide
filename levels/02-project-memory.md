@@ -111,8 +111,12 @@ For larger projects, keep deeper docs in the repo and **point** to them instead 
 docs/
   architecture.md     # components, data flow (with a diagram)
   decisions/          # ADRs: why we chose X over Y
-  specs/              # feature specs (see L3)
+  templates/          # spec/plan templates (see L3)
 ```
+
+`docs/` holds **knowledge**: things that stay true until the code changes. Work items (specs, plans, TODO lists,
+tickets) don't belong here. They go stale once the work is done, and the agent will still read them as current.
+Track work in GitHub issues and keep specs/plans in a gitignored `.scratch/` folder ([L3](03-spec-plan-code.md#where-the-spec-lives)).
 
 In `CLAUDE.md`:
 

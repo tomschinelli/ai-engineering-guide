@@ -6,7 +6,7 @@ description: Implement a change test-first in Go. Use when adding new behaviour 
 # Test-driven change
 
 1. Restate the desired behaviour as a short list of acceptance criteria.
-   If a spec exists in docs/specs/, use its criteria. Ask if anything is ambiguous.
+   If a spec exists in .scratch/specs/ or the GitHub issue, use its criteria. Ask if anything is ambiguous.
 2. Agree on the public interface first: propose the smallest exported API (deep module) that covers the criteria,
    list what stays unexported, and get the user's OK. Skip if the interface already exists.
 3. Write failing tests:

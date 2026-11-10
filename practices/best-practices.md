@@ -17,7 +17,22 @@ flowchart LR
 | 4 | One task per session. `/clear` between unrelated tasks. | [L0](../levels/00-foundations.md) |
 | 5 | Link deep docs. Don't paste them. | [L2](../levels/02-project-memory.md) |
 | 6 | Use subagents for wide searches to keep the main context clean | [L6](../levels/06-scale.md) |
-| 7 | Keep plans and specs in files so they survive `/clear` and compaction | [L3](../levels/03-spec-plan-code.md) |
+| 7 | Keep specs and plans in gitignored `.scratch/` files so they survive `/clear`. Track work in GitHub issues, not in committed files. | [L3](../levels/03-spec-plan-code.md#where-the-spec-lives) |
+
+### Where work lives
+
+Anything that describes work *still to do* goes stale once it's done. If it's committed, the agent keeps reading it
+as current and follows outdated instructions when the code changes. So the repo holds **knowledge**, and work items live elsewhere:
+
+| What | Where | When it's done |
+|---|---|---|
+| Backlog, tickets, AFK/HITL board, refactor RFCs | **GitHub issues** (labels `afk` / `hitl`) | `Closes #N` in the PR closes it |
+| Spec, plan, agent TODO list, progress notes | **`.scratch/`**, gitignored | Condense the decisions into the PR/issue, then delete |
+| A decision that outlives the feature | **ADR** in `docs/decisions/` | Stays, and gets updated or superseded like code |
+| How the project works | `CLAUDE.md`, `docs/architecture.md`, code, tests | Updated in the same PR as the change |
+
+Skills that write local ticket files (e.g. `issues/*.md`): gitignore the folder and move the output into a GitHub issue.
+See [L3](../levels/03-spec-plan-code.md#where-the-spec-lives), [L4](../levels/04-test-first.md#deepening-existing-code-improve-codebase-architecture), [L7](../levels/07-automate.md#the-pipeline).
 
 ## Goal
 

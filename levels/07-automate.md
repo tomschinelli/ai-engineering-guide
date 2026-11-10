@@ -73,7 +73,7 @@ go test ./...
 
 The **Ralph Wiggum** pattern: run the same prompt headless in a loop. Each round starts with a **fresh context**,
 picks **one** ticket, implements it, verifies it, commits, and exits. The next round starts clean.
-State lives only in **git and the ticket files**, never in a long chat. You go AFK (away from keyboard) while it works through the board.
+State lives only in **git and the tickets** (GitHub issues), never in a long chat. You go AFK (away from keyboard) while it works through the board.
 
 Reference implementation: Matt Pocock's AI Engineer workshop 2026,
 [`mattpocock/ai-engineer-workshop-2026-project`](https://github.com/mattpocock/ai-engineer-workshop-2026-project), folder `ralph/`.
@@ -85,7 +85,7 @@ The repo has **no license file**, so read it there instead of copying it into yo
 flowchart LR
     G["/grill-me<br/>idea → decisions"] --> PRD["write-a-prd<br/>PRD"]
     PRD --> TIX["prd-to-issues<br/>vertical slices<br/>AFK / HITL"]
-    TIX --> B[("Board<br/>issues/*.md")]
+    TIX --> B[("Board<br/>GitHub issues<br/>label afk / hitl")]
     B --> R["afk.sh N<br/>Docker sandbox loop"]
     R -->|"1 ticket / round<br/>test + commit"| B
     R -->|"NO MORE TASKS"| H["You review<br/>the commits"]
@@ -93,18 +93,20 @@ flowchart LR
 ```
 
 ```
- /grill-me ─▶ PRD ─▶ prd-to-issues ─▶ BOARD (issues/*.md) ◀──────────────┐
-                     AFK / HITL           │                              │
+ /grill-me ─▶ PRD ─▶ prd-to-issues ─▶ BOARD (GitHub issues) ◀────────────┐
+                     AFK / HITL        label afk / hitl                  │
                                           ▼                              │
                             afk.sh N: docker sandbox, claude --print     │
                             pick 1 AFK ticket → /tdd → test + typecheck  │
-                            → commit → move ticket to issues/done/ ──────┘
+                            → commit "Closes #N" → close issue ──────────┘
                                           │ all AFK done
                                           ▼
                             "<promise>NO MORE TASKS</promise>" ─▶ you review
 ```
 
-The "kanban board" is just folders: open tickets in `issues/*.md`, finished ones moved to `issues/done/`.
+The "kanban board" is your GitHub issues: open issues labelled `afk` are the queue, a closed issue is done.
+Don't use a folder of ticket files in the repo for this: finished tickets pile up, and later rounds (and later you)
+read them as if they still applied ([Where work lives](../practices/best-practices.md#where-work-lives)).
 Only **AFK** tickets go into the loop. **HITL** tickets (architecture calls, design review) stay with you.
 Cut tickets as vertical slices ([L3](03-spec-plan-code.md#slice-vertically-not-horizontally)): each one must be done and
 testable on its own, or a round can't finish it.
@@ -114,7 +116,7 @@ testable on its own, or a round can't finish it.
 | File | Role |
 |---|---|
 | `once.sh` | One interactive round on your machine (`--permission-mode acceptEdits`). Use it to watch and tune the prompt first. |
-| `afk.sh <N>` | Up to **N** rounds of `docker sandbox run claude . -- --print --output-format stream-json …`. Each round gets the last 5 commits, all open tickets, and `prompt.md`. Stops early when the result contains `<promise>NO MORE TASKS</promise>`. |
+| `afk.sh <N>` | Up to **N** rounds of `docker sandbox run claude . -- --print --output-format stream-json …`. Each round gets the last 5 commits, all open tickets (local `issues/*.md` files in the workshop), and `prompt.md`. Stops early when the result contains `<promise>NO MORE TASKS</promise>`. |
 | `prompt.md` | AFK tickets only, **one per round**. Priority: critical bugfix → dev infrastructure → tracer bullets → polish → refactors. Implement with `/tdd`, run the feedback loops (tests + typecheck), commit with decisions/files/notes for the next round, then move the ticket to `done/` or add a progress note to it. |
 
 ### Why it works
@@ -133,10 +135,12 @@ testable on its own, or a round can't finish it.
 - **The scripts target a Node/TypeScript project.** `prompt.md` runs `npm run test` and `npm run typecheck`.
   In a Go project the feedback loops are `go test ./...` and `go vet ./...`. Write your own `prompt.md` for that.
   Don't present it as the workshop file.
-- **The skills must match the loop:**
-  - The workshop repo's `prd-to-issues` writes **local** `issues/NNN-*.md` files. The one in
-    [`templates/.claude/skills/prd-to-issues/`](../templates/.claude/skills/prd-to-issues/) is the upstream version and creates
-    **GitHub issues**. Use the variant that matches where your board lives. `afk.sh` reads `issues/*.md`.
+- **Point the loop at GitHub issues, not ticket files.** The workshop keeps tickets as local `issues/*.md` files.
+  The upstream `prd-to-issues` in [`templates/.claude/skills/prd-to-issues/`](../templates/.claude/skills/prd-to-issues/)
+  creates **GitHub issues**, so use that one and write your own round script and `prompt.md` to match:
+  - Feed open tickets in with `gh issue list --label afk --state open --author @me --json number,title,body`.
+  - One ticket per round. Commit with `Closes #N` (or `gh issue close N`). Progress notes for the next round go in an issue comment.
+  - `--author @me` keeps tickets written by other people out of the prompt.
   - [`templates/.claude/skills/tdd/`](../templates/.claude/skills/tdd/) **stops and waits for your approval** of the tests.
     That's right for interactive work but blocks an AFK round. Don't point an AFK prompt at it.
 - **`docker sandbox`** is a Docker Desktop feature (Docker Sandboxes). Check Docker's docs for setup, auth, and what gets mounted.
@@ -146,7 +150,7 @@ testable on its own, or a round can't finish it.
 
 | Protected | Not protected |
 |---|---|
-| Your host filesystem, dotfiles, SSH keys, real credentials | Secrets you pass **into** the sandbox (API key, GitHub token): scope them to the minimum |
+| Your host filesystem, dotfiles, SSH keys, real credentials | Secrets you pass **into** the sandbox (API key, GitHub token): scope them to the minimum, e.g. a fine-grained token for this one repo with issues + contents only |
 | Destructive commands (`rm -rf`, global installs) | **Network egress**: without an allowlist/firewall the agent can still send data out |
 | Your other projects | **Prompt injection**: ticket text goes into the prompt as-is. Whoever writes tickets steers the agent |
 | | **What it commits**: the loop commits to the current branch |
@@ -186,14 +190,14 @@ Branch protection on `main` (required status checks: `go test`, `go vet`, lint) 
 
 ### Advanced (optional): issue tracker as the spec
 
-In [L3](03-spec-plan-code.md#where-the-spec-lives) the spec is a file and an issue is at most a pointer. Once other people
+In [L3](03-spec-plan-code.md#where-the-spec-lives) the issue tracks the work and the spec is a temporary file in `.scratch/`. Once other people
 discuss requirements with you, you plan on a board, or you want `@claude` to go from issue to PR, it pays to make
 the **issue itself the spec** (PRD-style). Works with GitHub Issues and Jira (or any tracker with a CLI or MCP server).
 
 ```mermaid
 flowchart LR
     I["Issue = spec<br/>/spec writes it"] --> G["/grill-me<br/>hardens issue body"]
-    G --> P[Plan file<br/>docs/plans/]
+    G --> P[Plan file<br/>.scratch/plans/]
     P --> X{Who implements?}
     X -- you + agent --> L[Local session<br/>step by step]
     X -- automation --> A["@claude on the issue<br/>(GitHub Action)"]
@@ -204,7 +208,7 @@ flowchart LR
 
 ```
  ISSUE (spec) ──▶ /grill-me ──▶ PLAN FILE ──┬──▶ local session ──┐
-  body = spec     updates     in repo     └──▶ @claude Action ─┴──▶ PR "Closes #12" ──▶ you merge
+  body = spec     updates     .scratch/   └──▶ @claude Action ─┴──▶ PR "Closes #12" ──▶ you merge
                   issue body
 ```
 
@@ -216,8 +220,10 @@ flowchart LR
 | `@claude` implements it | ✅ comment on the issue (workflow above) | Via a GitHub issue or a custom trigger |
 
 Rules that keep it sane:
-- **One source of truth.** Spec in the issue means no `docs/specs/x.md` for that feature. Don't keep both.
-- **The plan stays a file in the repo.** The agent re-reads it every step and it gets reviewed in the PR.
+- **One source of truth.** Spec in the issue means no `.scratch/specs/x.md` for that feature. Don't keep both.
+- **The plan stays a local file** in `.scratch/plans/` (gitignored). The agent re-reads it every step. Its key steps
+  and decisions go into the PR description, where they get reviewed. Delete it after merge.
+  The `@claude` Action has no `.scratch/`: put the plan in an issue comment for that path.
 - **Grilling writes back to the issue:** the new body, plus a comment listing the decisions, so the history shows why it changed.
   `/spec` ([`templates/.claude/skills/`](../templates/.claude/skills/)) handles issues and asks before writing. `/grill-me` writes nothing:
   after grilling, ask the agent to draft the new body and the decisions comment, and confirm before it posts.
@@ -449,8 +455,9 @@ More in [Security & permissions](../practices/security.md).
 
 1. Write a headless script that runs `/code-review`-style review on `git diff main...HEAD` and saves it as `review.md`.
 2. Add [`templates/.github/workflows/claude.yml`](../templates/.github/workflows/claude.yml) to shorty, open a PR, see the review, and try an `@claude` comment.
-3. Run the AFK loop pattern (section 3) on shorty: cut a small feature into 2–3 AFK tickets in `issues/`, write a Go
-   `prompt.md` (`go test ./...`, `go vet ./...`), do one round interactively, then a bounded sandboxed run on a feature branch.
+3. Run the AFK loop pattern (section 3) on shorty: cut a small feature into 2–3 GitHub issues labelled `afk`, write a Go
+   `prompt.md` (`gh issue list --label afk`, `go test ./...`, `go vet ./...`, `Closes #N`), do one round interactively,
+   then a bounded sandboxed run on a feature branch.
    Review the commits like a PR.
 4. Set up one scheduled job (govulncheck or dependency updates) that opens an issue or PR.
 5. Build the TypeScript triage agent (Example 1) in `tools/agents/`, run it against shorty with a deliberately broken test,

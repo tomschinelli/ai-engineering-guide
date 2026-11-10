@@ -43,7 +43,9 @@
 ## Workflow
 - Work on a branch; one commit per logical step; conventional commit messages.
 - Non-trivial work: plan first (plan mode), wait for approval.
-- Specs live in docs/specs/, plans in docs/plans/.
+- Work items (backlog, tickets, TODOs) live in GitHub issues, never as files in the repo.
+- Specs and plans are working files in .scratch/specs/ and .scratch/plans/ (gitignored). Never commit them, and don't
+  treat an old one as current: the code, tests and docs/ win. Templates: docs/templates/.
 
 ## Gotchas
 <!-- Add a line each time the agent makes a mistake that will recur. Delete lines that no longer apply. -->
