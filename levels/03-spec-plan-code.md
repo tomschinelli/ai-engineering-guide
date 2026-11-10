@@ -253,6 +253,7 @@ gitGraph
    `rm .scratch/specs/link-expiry.md .scratch/plans/link-expiry.md`.
 
 Even solo, PRs give you a reviewable unit, a CI gate (L7), and history that explains *why*.
+In a team: one owner per issue, a human reviewer on every PR. See [Working in a team](../practices/team.md).
 
 ---
 

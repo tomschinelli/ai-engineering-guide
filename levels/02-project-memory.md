@@ -28,6 +28,8 @@ flowchart TB
 | `./CLAUDE.local.md` | Your personal notes for this repo (gitignored) |
 | `./some/dir/CLAUDE.md` | Rules that only matter in that part of the codebase |
 
+In a team, `./CLAUDE.md` is shared and your preferences go into the personal files. See [Working in a team](../practices/team.md).
+
 > `@path` inside `CLAUDE.md` is an **import**, not a link: the file is pulled into context at session start, every
 > session, whether the task needs it or not. See [§4](#4-beyond-claudemd-docs-as-context) for the cheaper alternative.
 

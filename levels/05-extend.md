@@ -169,6 +169,7 @@ and remove the ones you don't use. Often `gh` or `psql` through Bash is enough. 
 Once your `.claude/` setup is useful across repos, package it as a **plugin** (skills + agents + hooks + MCP)
 and install it from a marketplace (`/plugin`). Start with a personal plugin or marketplace repo.
 This is how you get the same process in every project without copying files around.
+In a team, commit shared skills to the repo's `.claude/` or publish a team plugin. See [Working in a team](../practices/team.md).
 
 ---
 

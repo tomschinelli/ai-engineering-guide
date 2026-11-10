@@ -75,6 +75,7 @@ flowchart TB
 - [Context & cost management](practices/context-and-cost.md)
 - [Anti-patterns & recovery](practices/anti-patterns.md)
 - [Staying sharp](practices/staying-sharp.md): keep your own skills while the AI types
+- [Working in a team](practices/team.md): shared setup, handoff, and review when you're not solo
 
 **Copy-paste templates** → [`templates/`](templates/)
 
