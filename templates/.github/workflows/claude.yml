@@ -1,0 +1,76 @@
+# Claude in GitHub Actions
+# 1. Easiest setup: run `/install-github-app` inside Claude Code (installs the app + secret).
+#    Manual: install the Claude GitHub app and add the ANTHROPIC_API_KEY repository secret.
+# 2. Check the action's README for the current inputs: https://github.com/anthropics/claude-code-action
+#
+# Two jobs:
+#   review   : automatic review of every PR
+#   mention  : responds to "@claude ..." comments on issues and PRs
+name: claude
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  review:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review this pull request (diff against the base branch).
+            Follow CLAUDE.md. Focus on correctness, error handling, concurrency,
+            security, and missing or weakened tests. Run `go vet ./...` and
+            `go test ./...` to confirm suspicions. Post concise inline comments
+            for real issues only (no style nitpicks), then a short summary
+            comment ending with "Verdict: ready" or "Verdict: changes needed".
+          claude_args: |
+            --max-turns 20
+            --allowedTools "Read,Grep,Glob,Bash(go vet:*),Bash(go test:*),Bash(go build:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+
+  mention:
+    if: |
+      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+      contains(github.event.comment.body, '@claude') &&
+      github.event.comment.author_association == 'OWNER'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: |
+            --max-turns 30
+# Notes:
+# - The review job skips PRs from forks (untrusted input + secrets = prompt-injection risk).
+# - The mention job only reacts to the repo OWNER's comments.
+# - Claude pushes to branches/opens PRs; protect `main` with required checks and merge manually.
