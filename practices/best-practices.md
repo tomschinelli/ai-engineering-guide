@@ -78,6 +78,7 @@ See [L3](../levels/03-spec-plan-code.md#where-the-spec-lives), [L4](../levels/04
 | 30 | CI runs tests/lint and an automated review. A human merges. | [L7](../levels/07-automate.md) |
 | 31 | Automation gets least privilege, bounded turns, sandboxing. AFK loops run in a container on a branch. | [L7](../levels/07-automate.md) |
 | 32 | Encode repeated workflows as skills, and share them as plugins | [L5](../levels/05-extend.md) |
+| 33 | Conventional Commits mark breaking changes (`!`). CI checks the PR title; versions, git tags and image tags are calculated, never picked by hand. | [Releases](releases.md) |
 
 ## Always
 
@@ -85,4 +86,5 @@ See [L3](../levels/03-spec-plan-code.md#where-the-spec-lives), [L4](../levels/04
 - **Watch context, not just cost.** A bloated context gives worse answers. Stay in the smart zone (roughly the first ~40%). → [Smart zone vs. dumb zone](context-and-cost.md#smart-zone-vs-dumb-zone)
 - **Understand what you merge.** If you couldn't explain it in a code review, don't merge it. → [Staying sharp](staying-sharp.md)
 - **Know the failure modes** so you notice them early. → [Anti-patterns](anti-patterns.md)
+- **Version from commits.** One release workflow tags the repo and the Docker image with the same version. → [Commits, versions & releases](releases.md)
 - **In a team**, shared agent config goes through PRs, personal config stays local. → [Working in a team](team.md)

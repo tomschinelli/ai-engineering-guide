@@ -1,0 +1,33 @@
+# Check that the PR title is a Conventional Commit.
+# With squash merge, the PR title becomes the commit on main and decides the next version
+# (see practices/releases.md). Make this a required status check on main.
+# Check the action's README for current inputs: https://github.com/amannn/action-semantic-pull-request
+name: pr-title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional-title:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            perf
+            refactor
+            test
+            docs
+            chore
+            ci
+            build
+          requireScope: false

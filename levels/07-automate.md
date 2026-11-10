@@ -184,6 +184,7 @@ Two workflows that pay off for a solo developer:
 |---|---|---|
 | **Auto review** | `pull_request` opened/synchronised | Reviews the diff against your checklist, comments inline |
 | **@claude** | Comment containing `@claude` on issue/PR | Implements small fixes, answers questions, pushes to a branch |
+| **PR title + release** | `pull_request` / push to `main` | Checks Conventional Commit titles; release-please tags `vX.Y.Z` and the same run pushes the Docker image with that version. See [releases](../practices/releases.md). |
 
 Keep a **human merge gate**: CI may comment and push to branches, but **you** merge.
 Branch protection on `main` (required status checks: `go test`, `go vet`, lint) makes that enforceable.
@@ -470,6 +471,7 @@ More in [Security & permissions](../practices/security.md).
 - [ ] Every PR gets an automated review before you look at it
 - [ ] You can let a sandboxed loop work through AFK tickets on a branch and review its commits before merging
 - [ ] Repetitive maintenance runs on a schedule and reports through issues/PRs
+- [ ] Merging the release PR tags the repo and pushes a Docker image with the same version, and breaking changes bump the major
 - [ ] All automation runs with least privilege, bounded turns, and a human merge gate
 - [ ] You can choose between `claude -p`, Actions, routines, Agent SDK and the raw API for a given problem
 - [ ] You keep improving the loop: memory, skills, and hooks evolve from what automation runs show you

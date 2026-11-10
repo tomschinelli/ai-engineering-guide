@@ -245,12 +245,15 @@ gitGraph
 
 1. `git switch -c feat/link-expiry` (or ask the agent to). Spec and plan stay in `.scratch/`, not in a commit.
 2. One commit per plan step.
-3. Ask the agent to open the PR: *"Push and open a PR with `gh pr create`. Summarise the change and the key decisions
+3. Ask the agent to open the PR: *"Push and open a PR with `gh pr create`. Use a Conventional Commit title, with `!` if it's breaking. Summarise the change and the key decisions
    from the spec, list how it was tested, and include `Closes #12`."*
 4. **Self-review the PR on GitHub** as if a stranger wrote it. Seeing the change in a different UI catches things you missed in the terminal.
 5. Optionally get an independent AI review in a **fresh session** (no shared bias): `/code-review` or *"Review this PR diff for bugs and missing tests."* More in [L6](06-scale.md).
 6. After merge: anything from the spec worth keeping goes into the PR/issue (or an ADR), then
    `rm .scratch/specs/link-expiry.md .scratch/plans/link-expiry.md`.
+
+Squash merge makes the PR title the commit on `main`, and that title decides the next version: see
+[Commits, versions & releases](../practices/releases.md).
 
 Even solo, PRs give you a reviewable unit, a CI gate (L7), and history that explains *why*.
 In a team: one owner per issue, a human reviewer on every PR. See [Working in a team](../practices/team.md).

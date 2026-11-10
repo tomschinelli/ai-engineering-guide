@@ -104,6 +104,7 @@ Red flags that need a closer look:
 
 - Commit after each verified micro-loop. Small commits are easy to revert.
 - You can let the agent write the commit message ("commit this with a conventional commit message"), but read it.
+  The type decides the next version, so a breaking change must never hide in a `fix:` ([releases](../practices/releases.md)).
 - Never let un-reviewed AI changes pile up across several tasks.
 
 ---

@@ -14,6 +14,7 @@ cp -r templates/.claude              "$PROJECT/"                         # L5/L6
 chmod +x "$PROJECT"/.claude/hooks/*.sh
 mkdir -p "$PROJECT/.github/workflows"
 cp templates/.github/workflows/claude.yml "$PROJECT/.github/workflows/"  # L7
+cp templates/.github/workflows/pr-title.yml templates/.github/workflows/release.yml "$PROJECT/.github/workflows/"  # L7: releases
 ```
 
 | Path | Level | Purpose |
@@ -34,6 +35,8 @@ cp templates/.github/workflows/claude.yml "$PROJECT/.github/workflows/"  # L7
 | `.claude/agents/go-reviewer.md` | L6 | Independent fresh-context reviewer |
 | `.claude/agents/test-writer.md` | L6 | Tests / characterisation tests |
 | `.github/workflows/claude.yml` | L7 | PR auto-review + `@claude` mentions |
+| `.github/workflows/pr-title.yml` | L7 | PR title must be a Conventional Commit (required check) |
+| `.github/workflows/release.yml` | L7 | release-please → git tag `vX.Y.Z` → Docker image `:X.Y.Z`, `:X.Y`, `:X` ([releases](../practices/releases.md)) |
 
 Requirements for the hooks: `jq`, `gofmt`/`go` on PATH.
 

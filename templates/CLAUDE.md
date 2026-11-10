@@ -44,7 +44,11 @@ Reference deep docs by plain path + "read when…". Don't @-import them (imports
 5. Summary lists what changed and how it was verified
 
 ## Workflow
-- Work on a branch; one commit per logical step; conventional commit messages.
+- Work on a branch; one commit per logical step.
+- Conventional Commits: `type(scope): summary` (feat, fix, perf, refactor, test, docs, chore, ci, build).
+  The squash-merged PR title decides the next version.
+- Breaking = an existing client or deployment breaks without changing anything (API field/endpoint/status code,
+  env var, required config, incompatible migration). Mark with `!` + a `BREAKING CHANGE:` footer. Unsure? Ask.
 - Non-trivial work: plan first (plan mode), wait for approval.
 - Work items (backlog, tickets, TODOs) live in GitHub issues, never as files in the repo.
 - Specs and plans are working files in .scratch/specs/ and .scratch/plans/ (gitignored). Never commit them, and don't

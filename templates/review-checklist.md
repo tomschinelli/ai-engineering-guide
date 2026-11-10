@@ -36,4 +36,5 @@ Use for every AI-written change before you commit or merge. You own every line.
 ## 6. Housekeeping
 - [ ] Docs / CLAUDE.md / spec updated if behaviour or conventions changed
 - [ ] Commit message explains *why*
+- [ ] PR title is a Conventional Commit, and breaking changes are marked with `!`
 - [ ] Anything the agent got wrong that will recur → added to CLAUDE.md
