@@ -6,6 +6,9 @@ start small, build habits that scale, and add power only when the basics are sol
 > **Core idea:** The AI writes code fast. Your job is to give it the right **context**, a clear **goal**,
 > and a fast way to **verify** the result. Everything in this guide is a variation of that loop.
 
+> **Disclaimer:** This guide is a proposal, not a set of hard rules. Take what works for you, skip what
+> doesn't, and adapt it to your own practices. It's also a working document, so expect changes.
+
 ---
 
 ## The one loop that matters
