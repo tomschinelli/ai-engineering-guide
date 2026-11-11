@@ -15,6 +15,9 @@ description: Implement a change test-first in Go. Use when adding new behaviour 
    - table-driven, `t.Run(tc.name, ...)`
    - cover happy path, invalid input, boundaries, and error cases
    - inject time/randomness, no sleeps
+   - new or changed adapter behind a port (DB store, API client) → add a case to that port's shared contract suite
+     and run it against the fake and the real implementation (testcontainers)
+   - change reaches the HTTP layer → one `httptest` end-to-end test for the happy path and key errors
    - do NOT write implementation code yet
 4. Run the tests (`go test ./<pkg> -run <TestName> -v`) and show that they fail **for the right reason**
    (missing behaviour, not a compile error in the test itself).

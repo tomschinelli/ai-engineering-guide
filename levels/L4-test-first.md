@@ -134,6 +134,15 @@ and the fake clock from internal/clock, no mocks of internal parts.
 Do NOT write the implementation. Run the tests and show that they fail for the right reason.
 ```
 
+- **Plus the outer layers** ([why](#where-integration-tests-come-in)), only when the slice touches them:
+
+| Slice touches | Add |
+|---|---|
+| A store or API client (new method, new query) | a case in that port's contract suite, run against fake + real (testcontainers) |
+| A handler, route or wiring | one `httptest` end-to-end test: happy path + key errors |
+
+Vertical slices usually reach the handler, so most slices get one e2e test. They go red first too.
+
 - **Output:** a test file, not committed yet.
 - **Done when:** the tests fail because the behaviour is missing, **not** because of a compile error or a typo in the test.
   A test that's red for the wrong reason proves nothing.
@@ -145,6 +154,7 @@ Do NOT write the implementation. Run the tests and show that they fail for the r
 
 - [ ] Every criterion step k covers has at least one test case
 - [ ] Edge cases from the spec's Behaviour table are cases in the table (empty, invalid, boundary, expired)
+- [ ] Slice touches a store or handler? A contract case or e2e test is there too
 - [ ] Tests check **behaviour** through the public API, not how the code does it
 - [ ] Nothing "can't fail" (assertions on mocks only, `if err != nil { return }` in a test)
 
@@ -279,6 +289,58 @@ var ErrInvalidURL, ErrNotFound, ErrExpired error
 URL validation, code generation, collision retry and expiry checks are all **unexported**. The tests live in
 `package shortener_test` and only call `Shorten`/`Resolve`. They use a real in-memory `Store` and the fake clock.
 Fakes go only at true external edges (DB, network, time), never between internal pieces.
+
+### How a small interface still checks the internals
+
+A small interface doesn't mean few tests. It means **many tests through one door**. You check the internals by what
+they cause, not by calling them directly.
+
+- **Only observable behaviour matters.** Every internal rule must show up through the interface as a return value, an
+  error, a change in the store, or an effect of time. If it never shows up, it's dead code: delete it.
+- **One input per internal branch.** Two methods can carry 30+ table cases.
+- **Injected dependencies are part of the interface.** `New(store, clk)` gives you the knobs (time, storage state)
+  to put the module into any internal state without reaching inside.
+- **Coverage as a check.** `go test -cover` on the boundary tests: if an internal branch isn't covered, either a test
+  case is missing or the code can't be reached and should go.
+- **The gaps are covered too.** "Validation passes but generation fails" happens inside the test boundary. With
+  shallow modules + mocks, no test looks at it.
+
+| Internal | Reached through the interface by |
+|---|---|
+| URL validation | `Shorten(ctx, "ftp://x", 0)` → `ErrInvalidURL` |
+| Expiry | fake clock advanced past `ttl` → `Resolve` returns `ErrExpired` |
+| Collision retry | store already holding the next code → `Shorten` still returns a unique code |
+| Not found | `Resolve(ctx, "nope")` → `ErrNotFound` |
+
+### Where integration tests come in
+
+A deep-module test with a real in-memory store already integrates all the internal pieces. Only the external edges
+are faked. Integration tests cover what's left: **the real adapters and the wiring.**
+
+| Layer | Test | How many |
+|---|---|---|
+| Deep module | boundary tests: in-memory store + fake clock | many, fast |
+| Adapter (Postgres `Store`) | **contract tests**: one shared suite run against the in-memory store *and* real Postgres (testcontainers) | one suite per port |
+| Wiring (HTTP → service → DB) | `httptest` end-to-end: happy paths + key errors | few |
+
+The contract test is what lets you trust the fast tests. It proves the fake behaves like the real thing:
+
+```go
+// one suite, every Store implementation must pass it
+func testStoreContract(t *testing.T, newStore func(t *testing.T) shortener.Store) {
+    t.Run("save then get", func(t *testing.T) { /* ... */ })
+    t.Run("duplicate code is rejected", func(t *testing.T) { /* ... */ })
+}
+
+func TestMemStore(t *testing.T)      { testStoreContract(t, newMemStore) }
+func TestPostgresStore(t *testing.T) { testStoreContract(t, newPostgresStore) } // testcontainers
+```
+
+| Layer | Catches |
+|---|---|
+| Boundary tests | logic bugs |
+| Contract tests | the fake and the real store disagree (SQL, constraints, transactions) |
+| End-to-end | wiring and config bugs |
 
 ### Put it in `CLAUDE.md`
 
@@ -471,6 +533,7 @@ Feature: **click counting** for shorty (each redirect increments a counter; a st
 - [ ] Every slice has a `test:` commit before its `feat:` commit
 - [ ] You review tests more carefully than implementation
 - [ ] You agree on a small public interface first and test through it, not through internal helpers
+- [ ] Every fake has a contract suite that also runs against the real thing, and every endpoint has an `httptest` e2e test
 - [ ] Your `CLAUDE.md` has a definition of done the agent runs itself
 - [ ] You've caught the agent weakening a test, and fixed your process so it can't happen quietly
 - [ ] You use characterisation tests before touching legacy code

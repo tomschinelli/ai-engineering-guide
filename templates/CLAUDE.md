@@ -33,6 +33,7 @@ Reference deep docs by plain path + "read when…". Don't @-import them (imports
 ## Testing
 - Table-driven tests with `t.Run`. HTTP via `httptest`.
 - Test through the public API (`package foo_test`). Fakes only at external edges (DB, network, time).
+- Every fake passes the same contract suite as the real adapter (testcontainers). Every endpoint has an `httptest` e2e test.
 - New behaviour → tests first (see /tdd skill).
 - Never modify or skip existing tests to make them pass. Fix the code or ask.
 

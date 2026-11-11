@@ -21,7 +21,7 @@ not "all the models", then "all the handlers". Every acceptance criterion should
 - Interface: <optional: agreed public API, filled in L4 step 1>
 - Files: `internal/...`
 - Changes: <what>
-- Tests: <which tests are added/changed>
+- Tests: <boundary tests; + contract case if a store/client changes; + `httptest` e2e if a handler changes>
 - Verify: `go test ./internal/... -run ...`
 - [ ] done
 
