@@ -336,6 +336,19 @@ func TestMemStore(t *testing.T)      { testStoreContract(t, newMemStore) }
 func TestPostgresStore(t *testing.T) { testStoreContract(t, newPostgresStore) } // testcontainers
 ```
 
+**Keep the slow ones out of the inner loop.** Tests that need Docker go in `*_integration_test.go` with a build tag:
+
+```go
+//go:build integration
+```
+
+| Command | Runs | When |
+|---|---|---|
+| `go test ./... -race` | boundary, `httptest` e2e (in-memory store), contract vs. fake | constantly, every slice |
+| `go test -tags=integration ./... -race` | + contract vs. real Postgres, e2e against real DB | slice touched a store/handler, `/ship`, CI |
+
+CI ([`ci.yml`](../templates/.github/workflows/ci.yml)) always runs both, so nothing slips through when you skip it locally.
+
 | Layer | Catches |
 |---|---|
 | Boundary tests | logic bugs |
@@ -427,6 +440,7 @@ flowchart LR
 - HTTP handlers: test with `httptest.NewRecorder` / `httptest.NewServer`.
 - Run single test: `go test ./internal/store -run TestExpiry -v`
 - Always before done: `go test ./... -race && go vet ./...`
+- Docker-backed tests: `*_integration_test.go` with `//go:build integration`; run `go test -tags=integration ./... -race`
 ```
 
 ---
@@ -441,7 +455,7 @@ The rule: **give the agent a way to see what you would see.**
 | Static checks | `go vet`, `golangci-lint run`, `staticcheck` | "lint must be clean" |
 | Unit | `go test ./...` | TDD as above |
 | Race conditions | `go test -race` | "run with -race" |
-| Integration | `httptest.NewServer`, testcontainers | "start the server and curl it" |
+| Integration | `httptest.NewServer`, testcontainers (`-tags=integration`) | "start the server and curl it" |
 | Behaviour | the actual running app | "run it, hit the endpoint, show the response" |
 | Fuzz / property | `go test -fuzz` | for parsers, validators, encoders |
 

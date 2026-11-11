@@ -187,16 +187,17 @@ sequenceDiagram
     You->>GH: review + merge (human gate)
 ```
 
-Two workflows that pay off for a solo developer:
+Workflows that pay off for a solo developer:
 
 | Workflow | Trigger | What it does |
 |---|---|---|
+| **CI** | `pull_request` / push to `main` | gofmt, vet, unit + integration tests (`-tags=integration`). The required check. |
 | **Auto review** | `pull_request` opened/synchronised | Reviews the diff against your checklist, comments inline |
 | **@claude** | Comment containing `@claude` on issue/PR | Implements small fixes, answers questions, pushes to a branch |
 | **PR title + release** | `pull_request` / push to `main` | Checks Conventional Commit titles; release-please tags `vX.Y.Z` and the same run pushes the Docker image with that version. See [releases](../practices/releases.md). |
 
 Keep a **human merge gate**: CI may comment and push to branches, but **you** merge.
-Branch protection on `main` (required status checks: `go test`, `go vet`, lint) makes that enforceable.
+Branch protection on `main` (required status check: the `ci` job from [`ci.yml`](../templates/.github/workflows/ci.yml), plus `pr-title`) makes that enforceable.
 
 ### Advanced (optional): issue tracker as the spec
 

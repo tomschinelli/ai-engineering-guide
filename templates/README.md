@@ -13,6 +13,7 @@ cp templates/review-checklist.md     "$PROJECT/docs/review-checklist.md" # L1/L4
 cp -r templates/.claude              "$PROJECT/"                         # L5/L6: settings, hooks, skills, agents
 chmod +x "$PROJECT"/.claude/hooks/*.sh
 mkdir -p "$PROJECT/.github/workflows"
+cp templates/.github/workflows/ci.yml "$PROJECT/.github/workflows/"  # L4/L7: tests
 cp templates/.github/workflows/claude.yml "$PROJECT/.github/workflows/"  # L7
 cp templates/.github/workflows/pr-title.yml templates/.github/workflows/release.yml "$PROJECT/.github/workflows/"  # L7: releases
 mkdir -p "$PROJECT/tools" && cp -r templates/vm-runner "$PROJECT/tools/vm-runner"  # L7: throwaway VM runner
@@ -35,6 +36,7 @@ mkdir -p "$PROJECT/tools" && cp -r templates/vm-runner "$PROJECT/tools/vm-runner
 | `.claude/skills/ship/` | L5 | `/ship`: verify, self-review, open PR |
 | `.claude/agents/go-reviewer.md` | L6 | Independent fresh-context reviewer |
 | `.claude/agents/test-writer.md` | L6 | Tests / characterisation tests |
+| `.github/workflows/ci.yml` | L4/L7 | gofmt, vet, unit + integration tests (required check) |
 | `.github/workflows/claude.yml` | L7 | PR auto-review + `@claude` mentions |
 | `.github/workflows/pr-title.yml` | L7 | PR title must be a Conventional Commit (required check) |
 | `.github/workflows/release.yml` | L7 | release-please → git tag `vX.Y.Z` → Docker image `:X.Y.Z`, `:X.Y`, `:X` ([releases](../practices/releases.md)) |

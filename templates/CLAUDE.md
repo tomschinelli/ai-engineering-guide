@@ -12,6 +12,7 @@ Reference deep docs by plain path + "read when…". Don't @-import them (imports
 - Build: `go build ./...`
 - Run locally: `go run ./cmd/<app>` (listens on :8080)
 - Test all: `go test ./... -race`
+- Integration (needs Docker): `go test -tags=integration ./... -race`
 - Test one: `go test ./internal/<pkg> -run TestName -v`
 - Lint: `go vet ./... && golangci-lint run`
 - Format: `gofmt -w .` (a hook runs this after edits)
@@ -34,6 +35,7 @@ Reference deep docs by plain path + "read when…". Don't @-import them (imports
 - Table-driven tests with `t.Run`. HTTP via `httptest`.
 - Test through the public API (`package foo_test`). Fakes only at external edges (DB, network, time).
 - Every fake passes the same contract suite as the real adapter (testcontainers). Every endpoint has an `httptest` e2e test.
+- Tests that need Docker (testcontainers) go in `*_integration_test.go` with `//go:build integration`. Everything else stays untagged and fast.
 - New behaviour → tests first (see /tdd skill).
 - Never modify or skip existing tests to make them pass. Fix the code or ask.
 
@@ -41,6 +43,7 @@ Reference deep docs by plain path + "read when…". Don't @-import them (imports
 1. `gofmt -l .` prints nothing
 2. `go vet ./...` clean
 3. `go test ./... -race` passes
+   - Touched a store, client or handler? Also `go test -tags=integration ./... -race`
 4. No TODOs/stubs left unless explicitly agreed
 5. Summary lists what changed and how it was verified
 
@@ -62,4 +65,4 @@ Reference deep docs by plain path + "read when…". Don't @-import them (imports
 
 ## Gotchas
 <!-- Add a line each time the agent makes a mistake that will recur. Delete lines that no longer apply. -->
-- <e.g. Integration tests need `docker compose up -d db` first.>
+- <e.g. Integration tests need Docker running (testcontainers).>

@@ -16,7 +16,8 @@ description: Implement a change test-first in Go. Use when adding new behaviour 
    - cover happy path, invalid input, boundaries, and error cases
    - inject time/randomness, no sleeps
    - new or changed adapter behind a port (DB store, API client) → add a case to that port's shared contract suite
-     and run it against the fake and the real implementation (testcontainers)
+     and run it against the fake and the real implementation (testcontainers, in `*_integration_test.go`
+     with `//go:build integration`)
    - change reaches the HTTP layer → one `httptest` end-to-end test for the happy path and key errors
    - do NOT write implementation code yet
 4. Run the tests (`go test ./<pkg> -run <TestName> -v`) and show that they fail **for the right reason**
@@ -28,6 +29,7 @@ description: Implement a change test-first in Go. Use when adding new behaviour 
    If a test seems wrong, stop and explain why instead of changing it.
 8. Run the definition of done:
    `gofmt -l . && go vet ./... && go test ./... -race`
+   plus `go test -tags=integration ./... -race` if you added contract or e2e tests.
    Iterate until clean.
 9. Refactor only if it clearly improves the code, keeping tests green.
 10. Summarise: what changed, full test output, anything left open.

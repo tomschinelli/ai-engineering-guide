@@ -91,6 +91,7 @@ flowchart TB
 | [`.claude/settings.json`](templates/.claude/settings.json) | L0/L5: permissions + hooks |
 | [`.claude/skills/`](templates/.claude/skills/) | L5: reusable workflows (`/spec`, `/grill-me`, `/tdd`, `/ship`) |
 | [`.claude/agents/`](templates/.claude/agents/) | L6: specialised subagents |
+| [`.github/workflows/ci.yml`](templates/.github/workflows/ci.yml) | L4/L7: gofmt, vet, unit + integration tests |
 | [`.github/workflows/claude.yml`](templates/.github/workflows/claude.yml) | L7: Claude in GitHub Actions |
 | [`vm-runner/`](templates/vm-runner/) | L7: Ansible playbook, plan/issue/AFK run in a throwaway VM |
 | [`.github/workflows/pr-title.yml`](templates/.github/workflows/pr-title.yml), [`release.yml`](templates/.github/workflows/release.yml) | L7: conventional PR titles, release + Docker tags |

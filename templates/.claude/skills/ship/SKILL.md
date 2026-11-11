@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 1. Make sure we're not on `main`. If we are, stop and ask for a branch name.
 2. Run the definition of done and show output:
-   `gofmt -l . && go vet ./... && go test ./... -race`
+   `gofmt -l . && go vet ./... && go test ./... -race && go test -tags=integration ./... -race`
    If anything fails, stop and report. Don't open a PR with failing checks.
 3. Self-review `git diff main...HEAD` against templates/review-checklist.md
    (or docs/review-checklist.md if present). List any findings and fix the clear ones.
