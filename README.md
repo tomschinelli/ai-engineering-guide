@@ -78,6 +78,7 @@ flowchart TB
 - [Working in a team](practices/team.md): shared setup, handoff, and review when you're not solo
 - [Commits, versions & releases](practices/releases.md): Conventional Commits, breaking changes, git + Docker tags
 - [VM sandbox](practices/vm-sandbox.md): unattended Claude Code runs in a throwaway VM that only reaches the public internet
+- [Tips](practices/tips.md): small general tweaks, e.g. short reports
 
 **Copy-paste templates** → [`templates/`](templates/)
 
