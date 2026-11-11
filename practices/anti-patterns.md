@@ -26,11 +26,11 @@ flowchart TD
 
 | Anti-pattern | Symptom | Fix |
 |---|---|---|
-| **Vibe-merging** | Merging code you haven't read or don't understand | Read every diff. Ask the agent to explain unclear parts. ([L1](../levels/01-prompt-verify.md)) |
-| **Mega-prompt** | "Build the whole app" → 2,000-line diff | Spec → plan → small steps ([L3](../levels/03-spec-plan-code.md)) |
+| **Vibe-merging** | Merging code you haven't read or don't understand | Read every diff. Ask the agent to explain unclear parts. ([L1](../levels/L1-prompt-verify.md)) |
+| **Mega-prompt** | "Build the whole app" → 2,000-line diff | Spec → plan → small steps ([L3](../levels/L3-spec-plan-code.md)) |
 | **The correction spiral** | 5th attempt at the same fix, each one worse | Two-strikes rule: `/clear` and re-prompt with what you learned |
 | **Kitchen-sink session** | One session for 6 unrelated tasks, agent gets confused | `/clear` between tasks |
-| **Test tampering** | Tests changed/skipped/deleted to "pass" | Commit tests first, "never modify tests", review test diffs ([L4](../levels/04-test-first.md)) |
+| **Test tampering** | Tests changed/skipped/deleted to "pass" | Commit tests first, "never modify tests", review test diffs ([L4](../levels/L4-test-first.md)) |
 | **Hallucinated APIs** | Calls to functions/packages/flags that don't exist | Build + vet in the loop. Point to real docs or examples. |
 | **Fake completion** | "Done!" with stubs, TODOs, or `panic("not implemented")` | Definition of done in CLAUDE.md, demand command output as evidence |
 | **Scope creep** | Asked for a bugfix, got a refactor + new abstractions | Constraints in prompt ("only change X"), non-goals in spec |
@@ -42,8 +42,8 @@ flowchart TD
 | **Rule bloat** | 600-line CLAUDE.md, the agent ignores half of it | Prune. Keep only rules it would otherwise get wrong. Move the rest to skills/docs, referenced by plain path + "read when…", not `@`-imported. |
 | **Permission fatigue** | Clicking "yes" to everything without reading | Allowlist safe commands so the prompts that remain matter |
 | **YOLO on the host** | `bypassPermissions` on your laptop with real credentials | Only in containers/VMs ([Security](security.md), [VM sandbox](vm-sandbox.md)) |
-| **Parallel chaos** | Three agents, one checkout, conflicting edits | Worktrees, independent tasks only ([L6](../levels/06-scale.md)) |
-| **Automation before process** | CI agent producing PRs nobody can review | Automate only workflows that already work manually ([L7](../levels/07-automate.md)) |
+| **Parallel chaos** | Three agents, one checkout, conflicting edits | Worktrees, independent tasks only ([L6](../levels/L6-scale.md)) |
+| **Automation before process** | CI agent producing PRs nobody can review | Automate only workflows that already work manually ([L7](../levels/L7-automate.md)) |
 | **Outsourcing thinking** | You can't explain your own system anymore | [Staying sharp](staying-sharp.md) |
 
 ---

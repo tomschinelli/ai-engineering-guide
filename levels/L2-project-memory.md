@@ -139,7 +139,7 @@ docs/
 
 `docs/` holds **knowledge**: things that stay true until the code changes. Work items (specs, plans, TODO lists,
 tickets) don't belong here. They go stale once the work is done, and the agent will still read them as current.
-Track work in GitHub issues and keep specs/plans in a gitignored `.scratch/` folder ([L3](03-spec-plan-code.md#where-the-spec-lives)).
+Track work in GitHub issues and keep specs/plans in a gitignored `.scratch/` folder ([L3](L3-spec-plan-code.md#where-the-spec-lives)).
 
 ### `@`-import or plain path?
 
@@ -163,7 +163,7 @@ Loading on demand only works if the hint says **when** to read the doc. Otherwis
 ```
 
 This rule is about `CLAUDE.md`. In a **prompt**, `@file` is still the right way to point at the file the task is
-about ([L1](01-prompt-verify.md)). That costs context once, for a task that needs it.
+about ([L1](L1-prompt-verify.md)). That costs context once, for a task that needs it.
 
 ---
 
@@ -185,4 +185,4 @@ about ([L1](01-prompt-verify.md)). That costs context once, for a task that need
 - [ ] Deep docs are referenced by plain path with a "read when…" hint, not pasted or `@`-imported
 - [ ] You have a personal `~/.claude/CLAUDE.md` for your preferences
 
-→ Next: [L3 — Spec → Plan → Code](03-spec-plan-code.md)
+→ Next: [L3 — Spec → Plan → Code](L3-spec-plan-code.md)

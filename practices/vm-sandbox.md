@@ -258,6 +258,6 @@ After the run:
 - [ ] You've checked the isolation once (section "Check the isolation yourself")
 - [ ] Tokens are fine-grained, single-repo, short-lived, and live in a password manager
 - [ ] `main` is protected, and every run ends in a draft PR that you review
-- [ ] The plan or tickets are written by you and are small, testable vertical slices ([L3](../levels/03-spec-plan-code.md))
+- [ ] The plan or tickets are written by you and are small, testable vertical slices ([L3](../levels/L3-spec-plan-code.md))
 
-Related: [Security](security.md) · [L7 Automate](../levels/07-automate.md) · [Best practices](best-practices.md)
+Related: [Security](security.md) · [L7 Automate](../levels/L7-automate.md) · [Best practices](best-practices.md)

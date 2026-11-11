@@ -24,7 +24,7 @@ File locations change between versions, so check the [docs](https://code.claude.
 ## `CLAUDE.md` is team code
 
 - Changes go through a PR and get reviewed like code.
-- Keep it short and factual ([L2](../levels/02-project-memory.md#only-what-the-agent-cant-know-by-itself)). Every line costs every teammate context in every session.
+- Keep it short and factual ([L2](../levels/L2-project-memory.md#only-what-the-agent-cant-know-by-itself)). Every line costs every teammate context in every session.
 - Anyone can add a line when the agent repeats a mistake. Put it in the same PR as the fix.
 - Personal taste ("explain before big refactors", "I like short answers") goes into `CLAUDE.local.md` or `~/.claude/CLAUDE.md`, not the shared file.
 
@@ -42,10 +42,10 @@ File locations change between versions, so check the [docs](https://code.claude.
 ## PRs and review
 
 - **The author owns AI-written code.** Read your own diff before you ask anyone else to.
-- Keep PRs small: reviewable in a few minutes ([L1](../levels/01-prompt-verify.md)). Split big agent output into several PRs.
+- Keep PRs small: reviewable in a few minutes ([L1](../levels/L1-prompt-verify.md)). Split big agent output into several PRs.
 - In the PR description, say **how it was verified**: tests added, commands run, output checked.
-- AI review in CI is a first pass ([L7](../levels/07-automate.md)). **A human approves every merge.**
-- Reviewers: read the tests first, then the code ([L4](../levels/04-test-first.md)).
+- AI review in CI is a first pass ([L7](../levels/L7-automate.md)). **A human approves every merge.**
+- Reviewers: read the tests first, then the code ([L4](../levels/L4-test-first.md)).
 
 ---
 

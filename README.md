@@ -59,14 +59,14 @@ flowchart TB
 
 | Level | Topic | You learn to… | Strengthens |
 |---|---|---|---|
-| [L0](levels/00-foundations.md) | Foundations | Understand how the agent works, set it up safely | everything |
-| [L1](levels/01-prompt-verify.md) | Prompt → Verify | Give one clear task, read every diff | Goal, Verify |
-| [L2](levels/02-project-memory.md) | Project Memory | Make the agent know your project via `CLAUDE.md` | Context |
-| [L3](levels/03-spec-plan-code.md) | Spec → Plan → Code | Explore, plan, implement, commit as a workflow | Goal, Ship |
-| [L4](levels/04-test-first.md) | Test-First | Let tests be the agent's feedback loop | Verify |
-| [L5](levels/05-extend.md) | Extend | Skills, hooks, MCP, plugins: encode your process | Context, Verify |
-| [L6](levels/06-scale.md) | Scale | Subagents, worktrees, parallel sessions, legacy repos | Agent works |
-| [L7](levels/07-automate.md) | Automate | Headless runs, AFK loops, CI, scheduled agents, Agent SDK | Ship |
+| [L0](levels/L0-foundations.md) | Foundations | Understand how the agent works, set it up safely | everything |
+| [L1](levels/L1-prompt-verify.md) | Prompt → Verify | Give one clear task, read every diff | Goal, Verify |
+| [L2](levels/L2-project-memory.md) | Project Memory | Make the agent know your project via `CLAUDE.md` | Context |
+| [L3](levels/L3-spec-plan-code.md) | Spec → Plan → Code | Explore, plan, implement, commit as a workflow | Goal, Ship |
+| [L4](levels/L4-test-first.md) | Test-First | Let tests be the agent's feedback loop | Verify |
+| [L5](levels/L5-extend.md) | Extend | Skills, hooks, MCP, plugins: encode your process | Context, Verify |
+| [L6](levels/L6-scale.md) | Scale | Subagents, worktrees, parallel sessions, legacy repos | Agent works |
+| [L7](levels/L7-automate.md) | Automate | Headless runs, AFK loops, CI, scheduled agents, Agent SDK | Ship |
 
 **Cross-cutting practices** (read alongside any level):
 

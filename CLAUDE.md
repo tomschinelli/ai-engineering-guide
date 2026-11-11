@@ -4,7 +4,7 @@ A personal zero-to-hero guide for AI-assisted development with Claude Code. Mark
 
 ## Structure
 - `README.md`: roadmap and entry point
-- `levels/0N-*.md`: one level each (L0–L7). Every level ends with a "Level up when…" checklist.
+- `levels/LN-*.md`: one level each (L0–L7). Every level ends with a "Level up when…" checklist.
 - `practices/`: cross-cutting topics (best practices, security, context & cost, anti-patterns, staying sharp)
 - `templates/`: copy-paste files for Go projects (CLAUDE.md, spec, plan, checklist, .claude/, GitHub workflow)
 

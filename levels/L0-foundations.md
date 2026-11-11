@@ -52,7 +52,7 @@ First-run checklist:
 
 - [ ] Run it inside a **git repository**. Git is your undo button.
 - [ ] Commit (or stash) before every AI session, so `git diff` shows exactly what the agent changed.
-- [ ] Run `/init` once to generate a starter `CLAUDE.md` (see [L2](02-project-memory.md)).
+- [ ] Run `/init` once to generate a starter `CLAUDE.md` (see [L2](L2-project-memory.md)).
 - [ ] Open `/permissions` and look at what's allowed.
 
 ---
@@ -131,4 +131,4 @@ More in [Security & permissions](../practices/security.md).
 - [ ] You use `Esc`, `/rewind`, `/clear` without thinking about it
 - [ ] You have an allow/deny list for your common commands
 
-→ Next: [L1 — Prompt → Verify](01-prompt-verify.md)
+→ Next: [L1 — Prompt → Verify](L1-prompt-verify.md)

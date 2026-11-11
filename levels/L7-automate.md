@@ -108,7 +108,7 @@ The "kanban board" is your GitHub issues: open issues labelled `afk` are the que
 Don't use a folder of ticket files in the repo for this: finished tickets pile up, and later rounds (and later you)
 read them as if they still applied ([Where work lives](../practices/best-practices.md#where-work-lives)).
 Only **AFK** tickets go into the loop. **HITL** tickets (architecture calls, design review) stay with you.
-Cut tickets as vertical slices ([L3](03-spec-plan-code.md#slice-vertically-not-horizontally)): each one must be done and
+Cut tickets as vertical slices ([L3](L3-spec-plan-code.md#slice-vertically-not-horizontally)): each one must be done and
 testable on its own, or a round can't finish it.
 
 ### What's in `ralph/`
@@ -126,7 +126,7 @@ testable on its own, or a round can't finish it.
 | Fresh context per round | No context rot, no compaction. Every round is a clean, focused session. |
 | One ticket per round | Small diffs, one commit per ticket, easy to revert. |
 | Commits and ticket notes as memory | The hand-off between rounds is written down and reviewable. |
-| Tests + typecheck in the prompt | The loop is only as good as its feedback ([L4](04-test-first.md)). |
+| Tests + typecheck in the prompt | The loop is only as good as its feedback ([L4](L4-test-first.md)). |
 | `N` iterations + a stop word | Bounded cost, and a clean exit when the board is empty. |
 | Docker sandbox | The agent runs without permission prompts, but in a box instead of on your machine. |
 
@@ -198,7 +198,7 @@ Branch protection on `main` (required status checks: `go test`, `go vet`, lint) 
 
 ### Advanced (optional): issue tracker as the spec
 
-In [L3](03-spec-plan-code.md#where-the-spec-lives) the issue tracks the work and the spec is a temporary file in `.scratch/`. Once other people
+In [L3](L3-spec-plan-code.md#where-the-spec-lives) the issue tracks the work and the spec is a temporary file in `.scratch/`. Once other people
 discuss requirements with you, you plan on a board, or you want `@claude` to go from issue to PR, it pays to make
 the **issue itself the spec** (PRD-style). Works with GitHub Issues and Jira (or any tracker with a CLI or MCP server).
 

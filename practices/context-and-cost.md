@@ -109,7 +109,7 @@ flowchart TD
 | Subagents for exploration | Their reading doesn't land in your context |
 | Trim noisy output: `go test ./... 2>&1 \| tail -50`, `-run TestX` | Logs are context-hungry |
 | Remove unused MCP servers | Each one adds tool definitions to every session |
-| Keep `CLAUDE.md` lean: only what the agent would get wrong or waste effort rediscovering, no `@` imports of docs ([L2](../levels/02-project-memory.md#only-what-the-agent-cant-know-by-itself)) | It's loaded into **every** session |
+| Keep `CLAUDE.md` lean: only what the agent would get wrong or waste effort rediscovering, no `@` imports of docs ([L2](../levels/L2-project-memory.md#only-what-the-agent-cant-know-by-itself)) | It's loaded into **every** session |
 
 ---
 

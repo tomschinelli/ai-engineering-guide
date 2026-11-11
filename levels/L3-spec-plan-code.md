@@ -79,7 +79,7 @@ So split the two jobs:
   No network, no `gh`, no comments from other people in its context. They survive `/clear` and compaction.
 - **When the PR is merged, condense and delete.** The final decisions go into the PR description or a closing comment
   on the issue. A decision that should last (architecture, "why Postgres") becomes an ADR in `docs/decisions/`
-  ([L2](02-project-memory.md#4-beyond-claudemd-docs-as-context)). Then delete the scratch files.
+  ([L2](L2-project-memory.md#4-beyond-claudemd-docs-as-context)). Then delete the scratch files.
 
 ```
 Issue #12 "Link expiry"          → idea, why, final decisions          (work item, closed by the PR)
@@ -93,7 +93,7 @@ What stays committed is **knowledge**: code, tests, CLAUDE.md, `docs/architectur
 [Where work lives](../practices/best-practices.md#where-work-lives).
 
 Want the issue body itself to be the spec (team discussion, GitHub Projects, Jira, `@claude` issue → PR)?
-See [L7: Issue tracker as the spec](07-automate.md#advanced-optional-issue-tracker-as-the-spec).
+See [L7: Issue tracker as the spec](L7-automate.md#advanced-optional-issue-tracker-as-the-spec).
 
 ---
 
@@ -143,7 +143,7 @@ steps it's blocked by.
 ```
 
 Why it matters: every step stays verifiable (L4), you can stop after any slice and still have working software, and
-slices whose blockers are done can run **in parallel**. [L7](07-automate.md#the-pipeline) turns them into tickets (GitHub issues) on a board.
+slices whose blockers are done can run **in parallel**. [L7](L7-automate.md#the-pipeline) turns them into tickets (GitHub issues) on a board.
 
 **Review the plan like a design review.** Push back:
 "Why a new package?", "Step 3 is too big, split it", "Use the existing clock interface for testability."
@@ -248,7 +248,7 @@ gitGraph
 3. Ask the agent to open the PR: *"Push and open a PR with `gh pr create`. Use a Conventional Commit title, with `!` if it's breaking. Summarise the change and the key decisions
    from the spec, list how it was tested, and include `Closes #12`."*
 4. **Self-review the PR on GitHub** as if a stranger wrote it. Seeing the change in a different UI catches things you missed in the terminal.
-5. Optionally get an independent AI review in a **fresh session** (no shared bias): `/code-review` or *"Review this PR diff for bugs and missing tests."* More in [L6](06-scale.md).
+5. Optionally get an independent AI review in a **fresh session** (no shared bias): `/code-review` or *"Review this PR diff for bugs and missing tests."* More in [L6](L6-scale.md).
 6. After merge: anything from the spec worth keeping goes into the PR/issue (or an ADR), then
    `rm .scratch/specs/link-expiry.md .scratch/plans/link-expiry.md`.
 
@@ -285,4 +285,4 @@ Feature: **link expiry** for shorty (links can have `expires_at`; expired links 
 - [ ] No specs, plans or TODO lists are committed; they live in `.scratch/` and are deleted after merge
 - [ ] You can resume a feature after `/clear` from the plan file
 
-→ Next: [L4 — Test-First](04-test-first.md)
+→ Next: [L4 — Test-First](L4-test-first.md)

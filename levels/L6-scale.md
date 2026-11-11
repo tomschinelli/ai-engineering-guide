@@ -65,7 +65,7 @@ flowchart LR
 ```
 
 Options: the `go-reviewer` subagent, a second terminal session (`claude` → *"review the diff on this branch"*),
-the `/code-review` command, or the CI review in [L7](07-automate.md). You still do the final review.
+the `/code-review` command, or the CI review in [L7](L7-automate.md). You still do the final review.
 
 ---
 
@@ -125,7 +125,7 @@ flowchart LR
 ```
 
 - The worked example becomes the pattern the others follow. Nail it first.
-- Ask the agent to use subagents in parallel, or script it headless (`claude -p` per file, see [L7](07-automate.md)).
+- Ask the agent to use subagents in parallel, or script it headless (`claude -p` per file, see [L7](L7-automate.md)).
 - Verify per unit, so failures are isolated and easy to retry.
 
 ---
@@ -167,4 +167,4 @@ Practices:
 - [ ] You know your own review capacity and don't go past it
 - [ ] Legacy areas you touch get a nested CLAUDE.md and characterisation tests
 
-→ Next: [L7 — Automate](07-automate.md)
+→ Next: [L7 — Automate](L7-automate.md)

@@ -69,7 +69,7 @@ description: Implement a change test-first. Use when adding new behaviour or fix
 ```
 
 Ready-made skills in [`templates/.claude/skills/`](../templates/.claude/skills/): `spec`, `tdd`, `ship`, plus [`grill-me`](https://claudemarketplaces.com/skills/mattpocock/skills/grill-me) (vendored with `grilling`) and
-[`improve-codebase-architecture`](../templates/.claude/skills/improve-codebase-architecture/) (deepen shallow modules, see [L4](04-test-first.md#deepening-existing-code-improve-codebase-architecture)).
+[`improve-codebase-architecture`](../templates/.claude/skills/improve-codebase-architecture/) (deepen shallow modules, see [L4](L4-test-first.md#deepening-existing-code-improve-codebase-architecture)).
 
 **What makes a good skill:**
 
@@ -153,7 +153,7 @@ Useful categories for web/API/CLI work:
 
 | MCP | Use |
 |---|---|
-| GitHub / Jira / issue tracker | Read the issue → spec → PR, without copy-paste (advanced setup: [L7](07-automate.md#advanced-optional-issue-tracker-as-the-spec)) |
+| GitHub / Jira / issue tracker | Read the issue → spec → PR, without copy-paste (advanced setup: [L7](L7-automate.md#advanced-optional-issue-tracker-as-the-spec)) |
 | Database (read-only user!) | Agent sees the real schema, can check queries |
 | Browser automation | Verify web UI changes visually (closes the loop for frontends) |
 | Docs / search | Current library docs instead of stale training knowledge |
@@ -191,4 +191,4 @@ In a team, commit shared skills to the repo's `.claude/` or publish a team plugi
 - [ ] Your `.claude/` directory is committed and reviewed like code
 - [ ] Every MCP server you run has least-privilege credentials
 
-→ Next: [L6 — Scale](06-scale.md)
+→ Next: [L6 — Scale](L6-scale.md)

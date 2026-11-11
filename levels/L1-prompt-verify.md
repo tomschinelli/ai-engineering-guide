@@ -129,4 +129,4 @@ For each one: write the prompt with the template, read the diff with the checkli
 - [ ] Every commit is reviewed and verified
 - [ ] You use `/clear` between unrelated tasks
 
-→ Next: [L2 — Project Memory](02-project-memory.md)
+→ Next: [L2 — Project Memory](L2-project-memory.md)

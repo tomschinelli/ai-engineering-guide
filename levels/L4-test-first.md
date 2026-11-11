@@ -251,7 +251,7 @@ flowchart LR
 - **Output location.** The skill writes a local `issues/*.md` file. Don't commit it: add `issues/` to `.gitignore`
   and move the RFC into a GitHub issue (step above). A committed RFC goes stale as soon as the refactor lands
   ([Where work lives](../practices/best-practices.md#where-work-lives)). An RFC is usually a **HITL** ticket: cut it
-  into AFK slices before the [L7 loop](07-automate.md#the-pipeline) picks it up.
+  into AFK slices before the [L7 loop](L7-automate.md#the-pipeline) picks it up.
 
 ---
 
@@ -349,4 +349,4 @@ the code. List anything that looks like a bug separately.
 - [ ] You use characterisation tests before touching legacy code
 - [ ] You've deepened one existing shallow cluster with `/improve-codebase-architecture`: RFC approved, boundary tests green, old shallow tests deleted on purpose
 
-→ Next: [L5 — Extend](05-extend.md)
+→ Next: [L5 — Extend](L5-extend.md)

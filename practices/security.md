@@ -70,7 +70,7 @@ flowchart LR
 | Longer autonomous runs (auto mode) | Claude Code's built-in sandbox (`/sandbox`): filesystem/network restrictions for commands |
 | `bypassPermissions`, untrusted repos, CI | **Container / VM / devcontainer** with no access to your real credentials |
 | Unattended runs on a private repo with a write token | **Throwaway VM** per run, public internet only, no host/LAN access. See [VM sandbox](vm-sandbox.md) |
-| AFK loops over many tickets (Ralph) | **Container sandbox** per run, on a feature branch, with scoped tokens. See [L7](../levels/07-automate.md#3-afk-loop-work-through-a-board-in-a-sandbox-ralph) |
+| AFK loops over many tickets (Ralph) | **Container sandbox** per run, on a feature branch, with scoped tokens. See [L7](../levels/L7-automate.md#3-afk-loop-work-through-a-board-in-a-sandbox-ralph) |
 
 ---
 
@@ -98,4 +98,4 @@ Remove at least one leg. For example, a CI agent that reviews PRs from forks sho
 - [ ] Run `govulncheck ./...` in CI
 - [ ] Run `/security-review` on changes touching auth, input handling, crypto, or SQL
 - [ ] Read hook scripts and MCP server configs before enabling them
-- [ ] Automation: scoped tokens, allowlisted tools, human merge gate ([L7](../levels/07-automate.md))
+- [ ] Automation: scoped tokens, allowlisted tools, human merge gate ([L7](../levels/L7-automate.md))
