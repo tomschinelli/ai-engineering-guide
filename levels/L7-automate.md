@@ -84,7 +84,7 @@ The repo has **no license file**, so read it there instead of copying it into yo
 ```mermaid
 flowchart LR
     G["/grill-me<br/>idea → decisions"] --> PRD["write-a-prd<br/>PRD"]
-    PRD --> TIX["prd-to-issues<br/>vertical slices<br/>AFK / HITL"]
+    PRD --> TIX["/to-tickets<br/>vertical slices<br/>blocking edges"]
     TIX --> B[("Board<br/>GitHub issues<br/>label afk / hitl")]
     B --> R["afk.sh N<br/>Docker sandbox loop"]
     R -->|"1 ticket / round<br/>test + commit"| B
@@ -93,8 +93,8 @@ flowchart LR
 ```
 
 ```
- /grill-me ─▶ PRD ─▶ prd-to-issues ─▶ BOARD (GitHub issues) ◀────────────┐
-                     AFK / HITL        label afk / hitl                  │
+ /grill-me ─▶ PRD ─▶ /to-tickets  ─▶ BOARD (GitHub issues) ◀────────────┐
+                     vertical slices   label afk / hitl                  │
                                           ▼                              │
                             afk.sh N: docker sandbox, claude --print     │
                             pick 1 AFK ticket → /tdd → test + typecheck  │
@@ -136,8 +136,10 @@ testable on its own, or a round can't finish it.
   In a Go project the feedback loops are `go test ./...` and `go vet ./...`. Write your own `prompt.md` for that.
   Don't present it as the workshop file.
 - **Point the loop at GitHub issues, not ticket files.** The workshop keeps tickets as local `issues/*.md` files.
-  The upstream `prd-to-issues` in [`templates/.claude/skills/prd-to-issues/`](../templates/.claude/skills/prd-to-issues/)
-  creates **GitHub issues**, so use that one and write your own round script and `prompt.md` to match:
+  The upstream `to-tickets` in [`templates/.claude/skills/to-tickets/`](../templates/.claude/skills/to-tickets/)
+  publishes to the tracker set by `/setup-matt-pocock-skills`. Pick **GitHub**, not local files. It labels tickets
+  `ready-for-agent` unless told otherwise, so tell it to use `afk` (or filter on its label). Then write your own round
+  script and `prompt.md` to match:
   - Feed open tickets in with `gh issue list --label afk --state open --author @me --json number,title,body`.
   - One ticket per round. Commit with `Closes #N` (or `gh issue close N`). Progress notes for the next round go in an issue comment.
   - `--author @me` keeps tickets written by other people out of the prompt.

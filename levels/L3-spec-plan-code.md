@@ -430,7 +430,7 @@ prompt about three times, [L5](L5-extend.md#2-skills) turns it into a skill. Rea
 | 3, 6 Harden | Gap-finding prompt | `/grill-me` (you can use it now) |
 | 8 Execute a slice | Slice prompt | `/tdd`, test-first with a review stop ([L4](L4-test-first.md), [L5](L5-extend.md#2-skills)) |
 | 9 PR | `gh pr create` prompt | `/ship` ([L5](L5-extend.md#2-skills)) |
-| Slices → tickets | Steps in the plan file | `prd-to-issues` + a board ([L7](L7-automate.md#the-pipeline)) |
+| Slices → tickets | Steps in the plan file | `/to-tickets` + a board ([L7](L7-automate.md#the-pipeline)) |
 
 The files and the `/clear` between steps stay the same. Skills only shorten the prompts.
 
