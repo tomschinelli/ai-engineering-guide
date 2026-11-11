@@ -39,7 +39,7 @@ flowchart LR
     FW -. dropped .-> PRIV[The host itself · LAN · VPN<br/>Docker · other VMs · 169.254.x]
 ```
 
-```
+```text
  workstation ─────────────────────────────────────────────────────────────┐
  │ ansible-playbook ──SSH──▶ VM (agent-net, static IP, public DNS)        │
  │                            │                                           │
@@ -71,7 +71,7 @@ sequenceDiagram
     H->>V: destroy VM, disk, network, firewall table
 ```
 
-```
+```text
  nft + network ─▶ VM boots ─▶ tools ─▶ clone ─▶ plan/issue ─▶ claude -p ─▶ push + draft PR
                                                                                  │
               teardown (always, even on failure) ◀── fetch logs ◀────────────────┘

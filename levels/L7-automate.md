@@ -92,7 +92,7 @@ flowchart LR
     B -. HITL tickets .-> YOU[You, interactively]
 ```
 
-```
+```text
  /grill-me ─▶ PRD ─▶ /to-tickets  ─▶ BOARD (GitHub issues) ◀────────────┐
                      vertical slices   label afk / hitl                  │
                                           ▼                              │
@@ -216,7 +216,7 @@ flowchart LR
     PR --> H[You review + merge]
 ```
 
-```
+```text
  ISSUE (spec) ──▶ /grill-me ──▶ PLAN FILE ──┬──▶ local session ──┐
   body = spec     updates     .scratch/   └──▶ @claude Action ─┴──▶ PR "Closes #12" ──▶ you merge
                   issue body

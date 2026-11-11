@@ -17,7 +17,7 @@ flowchart LR
     T --> D["Docker image<br/>:1.4.0 :1.4 :1 :latest"]
 ```
 
-```
+```text
   commits on main ──▶ release PR ──(you merge)──▶ git tag v1.4.0 ──▶ image :1.4.0 :1.4 :1 :latest
   feat: / fix: / !     version + CHANGELOG          + GitHub release
 ```
@@ -39,7 +39,7 @@ Format: `type(scope): summary`. See [conventionalcommits.org](https://www.conven
 
 Two ways to mark a breaking change. Use both:
 
-```
+```text
 feat(api)!: rename "url" field to "target" in POST /links
 
 BREAKING CHANGE: clients must send "target" instead of "url".

@@ -50,7 +50,7 @@ flowchart LR
 
 ASCII fallback (one session, left to right):
 
-```
+```text
 0%                       ~40%                             100%
 [▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░│▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒]
  └fixed─┘└──── task ────┘ └──────────── growth ─────────────┘

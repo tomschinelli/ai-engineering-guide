@@ -104,7 +104,7 @@ git worktree remove ../shorty-metrics   # after merge
 4. **Notification hook** (L5) so you know when a session needs you.
 5. **Your bottleneck is review.** 2–3 parallel streams is a realistic maximum for one person doing proper review.
 
-```
+```text
  you: spec+plan ─┬─▶ worktree A ─▶ agent ─▶ PR A ─┐
                  ├─▶ worktree B ─▶ agent ─▶ PR B ─┼─▶ you review & merge one at a time
                  └─▶ worktree C ─▶ agent ─▶ PR C ─┘

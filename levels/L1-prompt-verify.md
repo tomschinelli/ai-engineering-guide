@@ -18,7 +18,7 @@ flowchart LR
     C --> T
 ```
 
-```
+```text
  small task ─▶ specific prompt ─▶ agent works ─▶ read diff ─▶ run checks ─┬─ ok ──▶ commit
                                        ▲                                   │
                                        └──────── paste exact error ◀── fail┘

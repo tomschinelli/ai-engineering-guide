@@ -48,7 +48,7 @@ flowchart LR
 
 The L3 core rule still holds: **every step ends in a file or a commit**, and the next session starts from that.
 
-```
+```text
  plan step k ─▶ Interface: line ─▶ *_test.go ─▶ test: commit ─▶ code ─▶ feat: commit + tick
  (approved)     (in plan file)     (RED)        (approved)      (GREEN)  (plan updated)
      ▲                                               │

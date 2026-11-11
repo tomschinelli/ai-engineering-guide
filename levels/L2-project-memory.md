@@ -111,7 +111,7 @@ flowchart LR
     W --> NX[Next session starts smarter]
 ```
 
-```
+```text
  mistake ─▶ correct ─▶ "will this recur?" ─ yes ─▶ add 1 line to CLAUDE.md ─▶ next session is better
 ```
 
@@ -130,7 +130,7 @@ Examples of good learned rules:
 
 For larger projects, keep deeper docs in the repo and **point** to them instead of inlining them:
 
-```
+```text
 docs/
   architecture.md     # components, data flow (with a diagram)
   decisions/          # ADRs: why we chose X over Y

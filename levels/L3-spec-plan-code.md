@@ -25,7 +25,7 @@ flowchart LR
     V -- all done --> PR[Open PR,<br/>self-review]
 ```
 
-```
+```text
  ┌───────┐  ┌───────┐  ┌────────┐  ┌──────┐  ┌──────┐  ┌───────────────┐  ┌────┐
  │ IDEA  │─▶│ SPEC  │─▶│ HARDEN │─▶│ PLAN │─▶│ SAVE │─▶│ SLICE ▸ COMMIT │─▶│ PR │
  └───────┘  └───────┘  └────────┘  └──────┘  └──────┘  └───────┬───────┘  └────┘
@@ -51,7 +51,7 @@ A spec and a plan are cheap to correct. Ten edited files are not.
 Each step reads **one input file** and produces **one output file** (or a commit, a PR). Then you `/clear`
 and start the next step from that file only.
 
-```
+```text
  idea ─▶ ideas/x.md ─▶ specs/x.md ─▶ specs/x.md ─▶ plans/x.md ─▶ commit ─▶ commit ─▶ … ─▶ PR
           (or #N)       (draft)      (approved)    (approved)   slice 1   slice 2
                ▲             ▲             ▲             ▲           ▲
@@ -203,7 +203,7 @@ So split the two jobs:
   on the issue (if there is one). A decision that should last (architecture, "why Postgres") becomes an ADR in `docs/decisions/`
   ([L2](L2-project-memory.md#4-beyond-claudemd-docs-as-context)). Then delete the scratch files.
 
-```
+```text
 .scratch/ideas/link-expiry.md    → idea, why, rough scope              (temporary, gitignored)
   or Issue #12 "Link expiry"     → same, plus final decisions          (work item, closed by the PR)
 .scratch/specs/link-expiry.md    → the spec / PRD, hardened in step 3  (temporary, gitignored)
@@ -247,7 +247,7 @@ Agents like to plan by layer: "1. models, 2. store, 3. handlers, 4. tests". Noth
 step 1 can't be checked on its own. Ask for **vertical slices** (also called *tracer bullets*) instead: each step cuts a thin path
 through **every** layer and ends in behaviour you can demo or test.
 
-```
+```text
  HORIZONTAL (avoid)                        VERTICAL (prefer)
  ┌──────────────────────────────┐          ┌────────┬────────┬────────┐
  │ 1. migration + model         │          │ 1      │ 2      │ 3      │

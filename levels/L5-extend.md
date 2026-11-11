@@ -36,7 +36,7 @@ flowchart TD
 A skill is a folder with a `SKILL.md`: instructions (and optionally scripts or reference files) that the agent loads
 **only when needed**, so it costs almost no context until it's used. You can also call it directly with `/skill-name`.
 
-```
+```text
 .claude/skills/
   tdd/
     SKILL.md
