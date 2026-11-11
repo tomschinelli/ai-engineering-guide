@@ -1,0 +1,17 @@
+# Remove a VM that run.yml left behind (-e keep=true, Ctrl-C, or a hard failure).
+#   ansible-playbook tools/vm-runner/down.yml -K -e run_id=20261111-142501
+# Without run_id it only removes the network and firewall table.
+
+- name: Tear down a leftover VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files: [vars.yml]
+  tasks:
+    - name: Derive names
+      ansible.builtin.set_fact:
+        vm_name: "{{ 'agent-' ~ run_id if run_id is defined else '' }}"
+        run_log_dir: "{{ runs_dir ~ '/' ~ run_id if run_id is defined else '' }}"
+
+    - name: Tear down
+      ansible.builtin.include_tasks: tasks/host-down.yml

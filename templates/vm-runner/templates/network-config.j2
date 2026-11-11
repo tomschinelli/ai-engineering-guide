@@ -1,0 +1,13 @@
+# Static IP and public DNS: the VM needs nothing from the host (no DHCP, no host resolver).
+version: 2
+ethernets:
+  nic0:
+    match:
+      macaddress: "{{ vm_mac }}"
+    set-name: eth0
+    addresses: ["{{ vm_ip }}/{{ net_prefix }}"]
+    routes:
+      - to: default
+        via: "{{ net_gateway }}"
+    nameservers:
+      addresses: {{ dns_servers | to_json }}

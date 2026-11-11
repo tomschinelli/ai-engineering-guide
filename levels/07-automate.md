@@ -151,12 +151,19 @@ testable on its own, or a round can't finish it.
 | Protected | Not protected |
 |---|---|
 | Your host filesystem, dotfiles, SSH keys, real credentials | Secrets you pass **into** the sandbox (API key, GitHub token): scope them to the minimum, e.g. a fine-grained token for this one repo with issues + contents only |
-| Destructive commands (`rm -rf`, global installs) | **Network egress**: without an allowlist/firewall the agent can still send data out |
+| Destructive commands (`rm -rf`, global installs) | **Network egress**: without an allowlist/firewall the agent can still send data out, and usually reach your LAN |
 | Your other projects | **Prompt injection**: ticket text goes into the prompt as-is. Whoever writes tickets steers the agent |
 | | **What it commits**: the loop commits to the current branch |
 
 Run the loop on a **feature branch, never `main`**. Review the commits and merge through a PR with CI, the same human gate as
 everywhere else (section 7). The sandbox makes it safe to let the agent *run*. It doesn't make the output safe to *merge*.
+
+### Stronger isolation: a throwaway VM
+
+For unattended runs on a **private repo with a write token**, go one step further: a fresh VM per run that reaches the
+public internet only (not your host, LAN, VPN or Docker), destroyed afterwards. An Ansible playbook creates it, clones
+the repo, runs a plan, one issue, or this AFK loop inside it, pushes a branch and opens a draft PR.
+See [VM sandbox](../practices/vm-sandbox.md) and [`templates/vm-runner/`](../templates/vm-runner/).
 
 ---
 
@@ -423,6 +430,7 @@ flowchart TD
 |---|---|
 | One-off or scripted coding tasks | `claude -p` |
 | Work through a board of small, well-tested tickets while you're away | AFK loop in a sandbox (section 3) |
+| Unattended run on a private repo, isolated from your host and LAN | Throwaway VM runner ([VM sandbox](../practices/vm-sandbox.md)) |
 | PR/issue automation | GitHub Action |
 | Your own internal tool that needs a coding/filesystem agent (triage bot, test writer, migration assistant) | **Agent SDK (TypeScript)** |
 | A program in another language that needs a coding agent | `claude -p --output-format json` as a subprocess |

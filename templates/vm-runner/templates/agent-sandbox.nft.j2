@@ -1,0 +1,38 @@
+#!/usr/sbin/nft -f
+# Firewall for the throwaway VM. Loaded before the VM starts, deleted at teardown.
+# Goal: the VM reaches the public internet, and nothing else.
+# A drop here is final. Accepts here don't override libvirt's or your own firewall rules.
+
+table inet agent_sandbox {
+	set blocked4 {
+		type ipv4_addr
+		flags interval
+		elements = {
+			0.0.0.0/8,       # "this network"
+			10.0.0.0/8,      # private (RFC 1918)
+			100.64.0.0/10,   # carrier-grade NAT, Tailscale
+			127.0.0.0/8,     # loopback
+			169.254.0.0/16,  # link-local, cloud metadata (169.254.169.254)
+			172.16.0.0/12,   # private (RFC 1918), Docker
+			192.0.0.0/24,    # IETF protocol assignments
+			192.168.0.0/16,  # private (RFC 1918), most home LANs, other libvirt networks
+			198.18.0.0/15,   # benchmarking
+			224.0.0.0/4,     # multicast
+			240.0.0.0/4,     # reserved, broadcast
+		}
+	}
+
+	# VM → the host itself: every host IP and port, including the bridge IP {{ net_gateway }}.
+	chain input {
+		type filter hook input priority filter - 10; policy accept;
+		iifname "{{ net_bridge }}" ct state established,related accept  # replies to the host's SSH (Ansible)
+		iifname "{{ net_bridge }}" drop
+	}
+
+	# VM → anything routed through the host.
+	chain forward {
+		type filter hook forward priority filter - 10; policy accept;
+		iifname "{{ net_bridge }}" meta nfproto ipv6 drop
+		iifname "{{ net_bridge }}" ip daddr @blocked4 drop
+	}
+}

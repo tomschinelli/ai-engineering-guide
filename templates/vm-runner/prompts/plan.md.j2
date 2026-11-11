@@ -1,0 +1,19 @@
+You are running unattended in a throwaway VM. Nobody can answer questions, so don't ask any.
+
+## Task
+
+Implement the plan in `{{ task_dir }}/plan.md` in this repository (`{{ repo }}`, the current directory).
+
+## Rules
+
+- Follow `CLAUDE.md`. Where the plan and the code disagree, trust the code and say so in the PR description.
+- Stay on branch `{{ branch }}`. Don't switch branches, don't push, don't open PRs. The runner does that.
+- After each step run the feedback loops: `go build ./...`, `go vet ./...`, `go test ./...`. Fix failures before the next step.
+- Commit after each working step, with Conventional Commit messages (`feat: …`, `fix: …`). Put decisions worth knowing in the body.
+- Never commit the plan, notes, logs or secrets. Everything under `{{ task_dir }}/` stays outside the repo.
+- Stuck? Commit what works, write what's blocking and what you tried to `{{ task_dir }}/notes.md`, and stop.
+
+## When you're done
+
+- Write a one-line Conventional Commit PR title to `{{ task_dir }}/pr-title.txt`.
+- Write a short PR description to `{{ task_dir }}/pr-body.md`: what changed, how you verified it, open questions.

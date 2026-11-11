@@ -41,7 +41,7 @@ flowchart TD
 | **Work files in the repo** | Old `issues/*.md`, `TODO.md`, specs and plans still committed. The agent follows them after the code has moved on. | Work items in GitHub issues; specs/plans in a gitignored `.scratch/`, deleted after merge ([Where work lives](best-practices.md#where-work-lives)) |
 | **Rule bloat** | 600-line CLAUDE.md, the agent ignores half of it | Prune. Keep only rules it would otherwise get wrong. Move the rest to skills/docs, referenced by plain path + "read when…", not `@`-imported. |
 | **Permission fatigue** | Clicking "yes" to everything without reading | Allowlist safe commands so the prompts that remain matter |
-| **YOLO on the host** | `bypassPermissions` on your laptop with real credentials | Only in containers/VMs ([Security](security.md)) |
+| **YOLO on the host** | `bypassPermissions` on your laptop with real credentials | Only in containers/VMs ([Security](security.md), [VM sandbox](vm-sandbox.md)) |
 | **Parallel chaos** | Three agents, one checkout, conflicting edits | Worktrees, independent tasks only ([L6](../levels/06-scale.md)) |
 | **Automation before process** | CI agent producing PRs nobody can review | Automate only workflows that already work manually ([L7](../levels/07-automate.md)) |
 | **Outsourcing thinking** | You can't explain your own system anymore | [Staying sharp](staying-sharp.md) |

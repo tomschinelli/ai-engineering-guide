@@ -1,0 +1,10 @@
+<!-- Isolated NAT network for the throwaway VM: no DHCP, no DNS, no IPv6.
+     The VM gets a static IP and public DNS servers from cloud-init (network-config.j2),
+     so it never needs a service on the host. The firewall is agent-sandbox.nft.j2. -->
+<network>
+  <name>{{ net_name }}</name>
+  <forward mode="nat"/>
+  <bridge name="{{ net_bridge }}" stp="on" delay="0"/>
+  <dns enable="no"/>
+  <ip address="{{ net_gateway }}" prefix="{{ net_prefix }}"/>
+</network>

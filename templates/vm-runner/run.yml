@@ -1,0 +1,115 @@
+# Throwaway VM runner: create VM → clone repo → run Claude Code → push branch + draft PR → destroy VM.
+# Explained in practices/vm-sandbox.md of the guide. Run from the project root:
+#
+#   CLAUDE_CODE_OAUTH_TOKEN="$(pass show claude/oauth-token)" GH_TOKEN="$(pass show github/shorty-agent)" \
+#     ansible-playbook tools/vm-runner/run.yml -K -e plan=.scratch/plans/add-expiry.md
+#
+#   -e plan=PATH    implement a local plan file (copied into the VM, never committed)
+#   -e issue=42     implement one GitHub issue (refused unless you wrote it)
+#   -e afk=5        up to 5 rounds over open `afk` issues written by you, one issue per round
+#   -e keep=true    leave the VM running for debugging. Remove it later with down.yml.
+
+- name: Create the throwaway VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files: [vars.yml]
+  tasks:
+    - name: Check inputs and secrets
+      ansible.builtin.assert:
+        that:
+          - "[plan is defined, issue is defined, afk is defined] | select | list | length == 1"
+          - lookup('env', 'GH_TOKEN') | length > 0
+          - (lookup('env', 'CLAUDE_CODE_OAUTH_TOKEN') ~ lookup('env', 'ANTHROPIC_API_KEY')) | length > 0
+        fail_msg: >-
+          Pass exactly one of -e plan=… / -e issue=… / -e afk=…, and set GH_TOKEN plus
+          CLAUDE_CODE_OAUTH_TOKEN (or ANTHROPIC_API_KEY) in the environment.
+        quiet: true
+
+    - name: Name this run
+      ansible.builtin.set_fact:
+        run_id: "{{ lookup('pipe', 'date +%Y%m%d-%H%M%S') }}"
+        mode: "{{ 'plan' if plan is defined else ('issue' if issue is defined else 'afk') }}"
+        plan_src: "{{ (plan if plan is abs else lookup('env', 'PWD') ~ '/' ~ plan) if plan is defined else '' }}"
+
+    - name: Derive branch, VM name and paths
+      ansible.builtin.set_fact:
+        slug: "{{ (plan_src | basename | splitext | first | regex_replace('[^A-Za-z0-9._-]', '-')) if mode == 'plan'
+                  else ('issue-' ~ issue if mode == 'issue' else 'afk') }}"
+        rounds: "{{ afk | int if mode == 'afk' else 1 }}"
+        vm_name: "agent-{{ run_id }}"
+        run_log_dir: "{{ runs_dir }}/{{ run_id }}"
+
+    - name: Check the plan file exists
+      ansible.builtin.assert:
+        that: plan_src is file
+        fail_msg: "Plan file not found: {{ plan_src }}"
+        quiet: true
+      when: mode == 'plan'
+
+    - name: Bring the VM up (tear down again if anything fails)
+      block:
+        - name: Host side
+          ansible.builtin.include_tasks: tasks/host-up.yml
+      rescue:
+        - name: Clean up
+          ansible.builtin.include_tasks: tasks/host-down.yml
+        - name: Stop
+          ansible.builtin.fail:
+            msg: Creating the VM failed. Everything was removed again. See the error above.
+
+- name: Run Claude Code in the VM
+  hosts: agent_vm
+  gather_facts: false
+  vars_files: [vars.yml]
+  vars:
+    # Secrets are read from the controller's environment and only ever passed as process env.
+    # Prefer the subscription token; fall back to an API key. Never run with -vvv: it prints the environment.
+    claude_env: "{{ {'CLAUDE_CODE_OAUTH_TOKEN': lookup('env', 'CLAUDE_CODE_OAUTH_TOKEN')}
+                    if lookup('env', 'CLAUDE_CODE_OAUTH_TOKEN')
+                    else {'ANTHROPIC_API_KEY': lookup('env', 'ANTHROPIC_API_KEY')} }}"
+    agent_env: "{{ claude_env | combine({'GH_TOKEN': lookup('env', 'GH_TOKEN'),
+                                         'PATH': '/home/' ~ agent_user ~ '/.local/bin:/usr/local/bin:/usr/bin:/bin'}) }}"
+  tasks:
+    - name: Set up, run, publish
+      block:
+        - name: Wait for SSH
+          ansible.builtin.wait_for_connection:
+            timeout: 300
+        - name: Provision the VM
+          ansible.builtin.include_tasks: tasks/vm-setup.yml
+        - name: Run the agent
+          ansible.builtin.include_tasks: tasks/vm-run.yml
+      rescue:
+        - name: Remember the failure, so teardown still runs
+          ansible.builtin.set_fact:
+            agent_failed: true
+      always:
+        - name: Copy logs to the host
+          ansible.builtin.include_tasks: tasks/vm-fetch-logs.yml
+
+- name: Destroy the throwaway VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files: [vars.yml]
+  tasks:
+    - name: Tear down
+      ansible.builtin.include_tasks: tasks/host-down.yml
+      when: not (keep | default(false) | bool)
+
+    - name: Kept for debugging
+      ansible.builtin.debug:
+        msg:
+          - "ssh -i {{ run_log_dir }}/ssh/id_ed25519 -o UserKnownHostsFile=/dev/null ops@{{ vm_ip }}"
+          - "Remove it: ansible-playbook tools/vm-runner/down.yml -K -e run_id={{ run_id }}"
+      when: keep | default(false) | bool
+
+    - name: Report
+      ansible.builtin.fail:
+        msg: "The run failed. Logs: {{ run_log_dir }}"
+      when: hostvars['agent-vm'].agent_failed | default(false)
+
+    - name: Done
+      ansible.builtin.debug:
+        msg: "Logs: {{ run_log_dir }}. Review the draft PR on branch {{ branch }} before merging."

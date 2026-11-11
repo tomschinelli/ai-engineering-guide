@@ -1,0 +1,104 @@
+# Host side: firewall → isolated network → overlay disk + cloud-init seed → VM → register it for the next play.
+# Runs on localhost. Root (become) only where libvirt files or nftables need it.
+
+- name: Refuse to start while an earlier run is still up (one run at a time)
+  become: true
+  ansible.builtin.command: virsh -c qemu:///system net-info {{ net_name }}
+  register: net_info
+  changed_when: false
+  failed_when: net_info.rc == 0
+
+- name: Create the log directory
+  ansible.builtin.file:
+    path: "{{ run_log_dir }}/ssh"
+    state: directory
+    mode: "0700"
+
+- name: Create a per-run SSH key for Ansible (deleted at teardown)
+  ansible.builtin.command: ssh-keygen -q -t ed25519 -N '' -C {{ vm_name }} -f {{ run_log_dir }}/ssh/id_ed25519
+  args:
+    creates: "{{ run_log_dir }}/ssh/id_ed25519"
+
+- name: Root-owned part
+  become: true
+  vars:
+    vm_dir: /var/lib/libvirt/images/{{ vm_name }}
+    ssh_pubkey: "{{ lookup('file', run_log_dir ~ '/ssh/id_ed25519.pub') }}"
+  block:
+    - name: Create the VM directory
+      ansible.builtin.file:
+        path: "{{ vm_dir }}/seed"
+        state: directory
+        mode: "0755"
+
+    - name: Render firewall, network and cloud-init files
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/templates/{{ item.src }}"
+        dest: "{{ vm_dir }}/{{ item.dest }}"
+        mode: "0644"
+      loop:
+        - { src: agent-sandbox.nft.j2, dest: agent-sandbox.nft }
+        - { src: agent-net.xml.j2, dest: agent-net.xml }
+        - { src: user-data.j2, dest: seed/user-data }
+        - { src: meta-data.j2, dest: seed/meta-data }
+        - { src: network-config.j2, dest: seed/network-config }
+
+    # Firewall first: the VM must never exist without it.
+    - name: Load the firewall (VM may reach the public internet only)
+      ansible.builtin.command: nft -f {{ vm_dir }}/agent-sandbox.nft
+      changed_when: true
+
+    - name: Start the isolated network (transient, gone after net-destroy)
+      ansible.builtin.command: virsh -c qemu:///system net-create {{ vm_dir }}/agent-net.xml
+      changed_when: true
+
+    - name: Create the overlay disk (the base image stays untouched)
+      ansible.builtin.command: >-
+        qemu-img create -f qcow2 -F qcow2 -b {{ base_image }} {{ vm_dir }}/disk.qcow2 {{ vm_disk_gb }}G
+      args:
+        creates: "{{ vm_dir }}/disk.qcow2"
+
+    - name: Build the cloud-init seed ISO (NoCloud, volume label cidata)
+      ansible.builtin.command: >-
+        xorriso -as mkisofs -quiet -output {{ vm_dir }}/seed.iso -volid cidata -joliet -rock {{ vm_dir }}/seed
+      args:
+        creates: "{{ vm_dir }}/seed.iso"
+
+    - name: Create and boot the VM
+      ansible.builtin.command: >-
+        virt-install --connect qemu:///system
+        --name {{ vm_name }} --memory {{ vm_memory_mb }} --vcpus {{ vm_vcpus }}
+        --osinfo linux2022 --import
+        --disk path={{ vm_dir }}/disk.qcow2,format=qcow2,bus=virtio
+        --disk path={{ vm_dir }}/seed.iso,device=cdrom
+        --network network={{ net_name }},mac={{ vm_mac }},model=virtio
+        --graphics none --noautoconsole
+      changed_when: true
+
+- name: Wait for SSH on the VM
+  ansible.builtin.wait_for:
+    host: "{{ vm_ip }}"
+    port: 22
+    timeout: 300
+
+- name: Register the VM for the next play
+  ansible.builtin.add_host:
+    name: agent-vm
+    groups: agent_vm
+    ansible_host: "{{ vm_ip }}"
+    ansible_user: ops
+    ansible_ssh_private_key_file: "{{ run_log_dir }}/ssh/id_ed25519"
+    # Fresh VM every run, on a local bridge: no stable host key to check against.
+    ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+    ansible_python_interpreter: /usr/bin/python3
+    run_id: "{{ run_id }}"
+    mode: "{{ mode }}"
+    slug: "{{ slug }}"
+    rounds: "{{ rounds }}"
+    plan_src: "{{ plan_src }}"
+    run_log_dir: "{{ run_log_dir }}"
+    branch: "{{ branch_prefix }}{{ slug }}-{{ run_id }}"
+
+- name: Remember the branch name for the summary
+  ansible.builtin.set_fact:
+    branch: "{{ branch_prefix }}{{ slug }}-{{ run_id }}"

@@ -1,0 +1,11 @@
+#cloud-config
+# Only gives Ansible a way in. Tools, the agent user and Claude Code are installed by the playbook.
+users:
+  - name: ops
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - {{ ssh_pubkey }}
+disable_root: true
+ssh_pwauth: false

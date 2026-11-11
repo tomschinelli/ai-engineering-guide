@@ -77,6 +77,7 @@ flowchart TB
 - [Staying sharp](practices/staying-sharp.md): keep your own skills while the AI types
 - [Working in a team](practices/team.md): shared setup, handoff, and review when you're not solo
 - [Commits, versions & releases](practices/releases.md): Conventional Commits, breaking changes, git + Docker tags
+- [VM sandbox](practices/vm-sandbox.md): unattended Claude Code runs in a throwaway VM that only reaches the public internet
 
 **Copy-paste templates** → [`templates/`](templates/)
 
@@ -90,6 +91,7 @@ flowchart TB
 | [`.claude/skills/`](templates/.claude/skills/) | L5: reusable workflows (`/spec`, `/grill-me`, `/tdd`, `/ship`) |
 | [`.claude/agents/`](templates/.claude/agents/) | L6: specialised subagents |
 | [`.github/workflows/claude.yml`](templates/.github/workflows/claude.yml) | L7: Claude in GitHub Actions |
+| [`vm-runner/`](templates/vm-runner/) | L7: Ansible playbook, plan/issue/AFK run in a throwaway VM |
 | [`.github/workflows/pr-title.yml`](templates/.github/workflows/pr-title.yml), [`release.yml`](templates/.github/workflows/release.yml) | L7: conventional PR titles, release + Docker tags |
 
 ---

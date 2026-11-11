@@ -1,0 +1,102 @@
+# Inside the VM, as the unprivileged `agent` user, with the secrets as process env only:
+# clone → branch → inject plan/issue → run Claude → push → draft PR.
+
+- name: Work as the agent user
+  become: true
+  become_user: "{{ agent_user }}"
+  environment: "{{ agent_env }}"
+  block:
+    - name: Let git use GH_TOKEN through gh (nothing is written to disk but a helper reference)
+      ansible.builtin.command: gh auth setup-git
+      changed_when: true
+
+    - name: Clone the private repo
+      ansible.builtin.command: gh repo clone {{ repo }} {{ work_dir }}
+      args:
+        creates: "{{ work_dir }}/.git"
+
+    - name: Set the commit identity and create the branch
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cd {{ work_dir }}
+        git config user.name {{ git_name | quote }}
+        git config user.email {{ git_email | quote }}
+        git switch -c {{ branch | quote }} origin/{{ base_branch }}
+      args:
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Inject the plan
+      ansible.builtin.copy:
+        src: "{{ plan_src }}"
+        dest: "{{ task_dir }}/plan.md"
+        mode: "0600"
+      when: mode == 'plan'
+
+    - name: Inject the issue (refused unless the token owner wrote it)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        me=$(gh api user -q .login)
+        author=$(gh issue view {{ issue }} --repo {{ repo }} --json author -q .author.login)
+        if [ "$me" != "$author" ]; then
+          echo "Issue #{{ issue }} was written by $author, not $me. Refusing to feed it to the agent." >&2
+          exit 1
+        fi
+        gh issue view {{ issue }} --repo {{ repo }} --json number,title,body > {{ task_dir }}/issue.json
+      args:
+        executable: /bin/bash
+      changed_when: true
+      when: mode == 'issue'
+
+    - name: Write the prompt and the round script
+      ansible.builtin.template:
+        src: "{{ item.src }}"
+        dest: "{{ task_dir }}/{{ item.dest }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { src: "{{ playbook_dir }}/prompts/{{ mode }}.md.j2", dest: prompt.md, mode: "0600" }
+        - { src: "{{ playbook_dir }}/templates/agent.sh.j2", dest: agent.sh, mode: "0700" }
+
+    - name: Run Claude Code (bounded by max turns, a timeout per round, and the number of rounds)
+      ansible.builtin.command: "{{ task_dir }}/agent.sh"
+      async: "{{ (rounds | int) * round_timeout + 300 }}"
+      poll: 30
+      register: agent_run
+      changed_when: true
+
+    - name: Show the round summaries
+      ansible.builtin.debug:
+        var: agent_run.stdout_lines
+
+    - name: Push the branch and open a draft PR
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cd {{ work_dir }}
+        if [ "$(git rev-list --count origin/{{ base_branch }}..HEAD)" -eq 0 ]; then
+          echo "No commits. Nothing to push."
+          exit 0
+        fi
+        git push -u origin "HEAD:refs/heads/{{ branch }}"
+        title=$(head -n1 {{ task_dir }}/pr-title.txt 2>/dev/null || true)
+        [ -n "$title" ] || title="chore(agent): {{ slug }}"
+        {
+          cat {{ task_dir }}/pr-body.md 2>/dev/null || true
+          echo
+          echo "### Commits"
+          git log --reverse --format='- %s' origin/{{ base_branch }}..HEAD
+          echo
+          echo "---"
+          echo "Unattended run \`{{ run_id }}\` ({{ mode }}) in a throwaway VM. Review it like any other PR."
+          {% if mode == 'issue' %}echo "Closes #{{ issue }}"{% endif %}
+
+        } > {{ task_dir }}/pr.md
+        gh pr create --repo {{ repo }} --draft --base {{ base_branch }} --head {{ branch | quote }} \
+          --title "$title" --body-file {{ task_dir }}/pr.md
+      args:
+        executable: /bin/bash
+      register: publish
+      changed_when: "'Nothing to push' not in publish.stdout"
+
+    - name: Show the PR
+      ansible.builtin.debug:
+        var: publish.stdout_lines

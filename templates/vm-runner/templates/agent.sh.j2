@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Rendered by the vm-runner playbook. Runs inside the VM as the agent user.
+# Mode {{ mode }}: up to {{ rounds }} Claude run(s), each with a fresh context.
+set -euo pipefail
+cd {{ work_dir }}
+task={{ task_dir }}
+touch "$task/skipped.txt"
+
+for i in $(seq 1 {{ rounds }}); do
+  prompt="$task/prompt-$i.md"
+  log="$task/logs/round-$i.jsonl"
+  cp "$task/prompt.md" "$prompt"
+{% if mode == 'afk' %}
+  # Tickets: open, labelled, written by the token owner. Minus the ones this branch already closes or the agent skipped.
+  handled=$( { git log "origin/{{ base_branch }}..HEAD" --format=%B | grep -oE 'Closes #[0-9]+' | tr -dc '0-9\n' || true
+               cat "$task/skipped.txt"; } \
+    | jq -Rsc 'split("\n") | map(gsub("\\s"; "") | select(test("^[0-9]+$")) | tonumber)')
+  tickets=$(gh issue list --repo {{ repo }} --label {{ afk_label }} --state open --author @me \
+      --json number,title,body \
+    | jq --argjson handled "$handled" 'map(select(.number | IN($handled[]) | not))')
+  if [ "$(jq length <<<"$tickets")" -eq 0 ]; then
+    echo "round $i: no AFK tickets left"
+    break
+  fi
+  {
+    echo
+    echo "## Open AFK tickets (JSON)"
+    echo "$tickets"
+    echo
+    echo "## Last commits on this branch"
+    git log -5 --format='%h %s%n%b'
+  } >> "$prompt"
+{% endif %}
+
+  status=0
+  timeout {{ round_timeout }} claude -p \
+    --dangerously-skip-permissions \
+    --max-turns {{ max_turns }} \
+    --output-format stream-json --verbose \
+    < "$prompt" > "$log" || status=$?
+
+  result=$(jq -r 'select(.type == "result") | "\(.subtype) turns=\(.num_turns) cost_usd=\(.total_cost_usd)"' "$log" 2>/dev/null || true)
+  echo "round $i: exit=$status ${result:-no result}"
+
+  # Stop on failure (timeout, max turns, usage limit). The runner still pushes what was committed.
+  [ "$status" -eq 0 ] || break
+  if jq -r 'select(.type == "result") | .result' "$log" | grep -q '<promise>NO MORE TASKS</promise>'; then
+    echo "round $i: agent reported no more tasks"
+    break
+  fi
+done

@@ -1,0 +1,37 @@
+# Teardown: VM, its disk and seed, the network, the firewall table, the SSH key. Safe to run twice.
+# Logs in {{ run_log_dir }} stay.
+
+- name: Remove VM, network and firewall
+  become: true
+  block:
+    - name: Stop and remove the VM
+      ansible.builtin.command: virsh -c qemu:///system {{ item }} {{ vm_name }}
+      loop: [destroy, undefine]
+      when: vm_name | default('') | length > 0
+      register: virsh_vm
+      changed_when: virsh_vm.rc == 0
+      failed_when: false
+
+    - name: Delete the VM disk and seed
+      ansible.builtin.file:
+        path: /var/lib/libvirt/images/{{ vm_name }}
+        state: absent
+      when: vm_name | default('') | length > 0
+
+    - name: Stop the isolated network
+      ansible.builtin.command: virsh -c qemu:///system net-destroy {{ net_name }}
+      register: virsh_net
+      changed_when: virsh_net.rc == 0
+      failed_when: false
+
+    - name: Remove the firewall table
+      ansible.builtin.command: nft delete table inet agent_sandbox
+      register: nft_del
+      changed_when: nft_del.rc == 0
+      failed_when: false
+
+- name: Delete the per-run SSH key
+  ansible.builtin.file:
+    path: "{{ run_log_dir }}/ssh"
+    state: absent
+  when: run_log_dir | default('') | length > 0

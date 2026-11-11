@@ -1,0 +1,38 @@
+# Settings for the throwaway VM runner. Change these for your project.
+# Secrets never go in this file. They come from env vars (see README.md).
+
+repo: your-org/shorty          # the private GitHub repo, owner/name
+base_branch: main
+branch_prefix: agent/
+afk_label: afk                 # AFK mode works through open issues with this label, written by you
+
+# VM
+base_image: /var/lib/libvirt/images/debian-13-genericcloud-amd64.qcow2   # downloaded once, never modified
+vm_vcpus: 2
+vm_memory_mb: 4096
+vm_disk_gb: 20
+
+# Isolated network. Pick a /24 that your LAN, VPN and Docker don't use.
+net_name: agent-net
+net_bridge: virbr-agent
+net_gateway: 192.168.250.1
+net_prefix: 24
+vm_ip: 192.168.250.10
+vm_mac: "52:54:00:a9:fa:10"
+dns_servers: [1.1.1.1, 9.9.9.9]  # must be public: the firewall blocks private ranges and the host
+
+# Claude Code
+max_turns: 80                  # per Claude run (check `claude --help` if the flag changed)
+round_timeout: 3600            # seconds per Claude run
+
+# Identity for the agent's commits
+git_name: vm-agent
+git_email: vm-agent@users.noreply.github.com
+
+# Inside the VM (no need to change)
+agent_user: agent
+task_dir: /home/agent/task     # plan, prompt, logs. Outside the checkout, so never committed.
+work_dir: /home/agent/work/repo
+
+# On the host: logs and the per-run SSH key. Run the playbook from the project root (.scratch/ is gitignored).
+runs_dir: "{{ lookup('env', 'PWD') }}/.scratch/vm-runs"

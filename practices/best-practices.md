@@ -76,7 +76,7 @@ See [L3](../levels/03-spec-plan-code.md#where-the-spec-lives), [L4](../levels/04
 |---|---|---|
 | 29 | Branch + PR even when solo. Self-review on GitHub. In a team, a human approves every merge. | [L3](../levels/03-spec-plan-code.md) |
 | 30 | CI runs tests/lint and an automated review. A human merges. | [L7](../levels/07-automate.md) |
-| 31 | Automation gets least privilege, bounded turns, sandboxing. AFK loops run in a container on a branch. | [L7](../levels/07-automate.md) |
+| 31 | Automation gets least privilege, bounded turns, sandboxing. AFK loops run in a container on a branch. Unattended runs on private repos run in a throwaway VM that only reaches the public internet. | [L7](../levels/07-automate.md), [VM sandbox](vm-sandbox.md) |
 | 32 | Encode repeated workflows as skills, and share them as plugins | [L5](../levels/05-extend.md) |
 | 33 | Conventional Commits mark breaking changes (`!`). CI checks the PR title; versions, git tags and image tags are calculated, never picked by hand. | [Releases](releases.md) |
 

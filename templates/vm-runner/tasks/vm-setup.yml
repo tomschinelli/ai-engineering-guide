@@ -1,0 +1,38 @@
+# Inside the VM, as `ops` with sudo: install tools, create the unprivileged `agent` user, install Claude Code.
+# Everything is installed fresh on every run, so there is no image to keep up to date.
+
+- name: Wait for cloud-init to finish
+  become: true
+  ansible.builtin.command: cloud-init status --wait
+  register: cloud_init
+  changed_when: false
+  failed_when: cloud_init.rc not in [0, 2]   # 2 = finished with warnings
+
+- name: Install tools
+  become: true
+  ansible.builtin.apt:
+    name: [git, gh, golang-go, jq, curl, ca-certificates, acl]   # acl: lets Ansible become an unprivileged user
+    update_cache: true
+
+- name: Create the agent user (no sudo, no SSH login)
+  become: true
+  ansible.builtin.user:
+    name: "{{ agent_user }}"
+    shell: /bin/bash
+    password_lock: true
+
+- name: Install Claude Code for the agent user (native installer, check the docs if the URL changed)
+  become: true
+  become_user: "{{ agent_user }}"
+  ansible.builtin.shell: set -o pipefail && curl -fsSL https://claude.ai/install.sh | bash
+  args:
+    executable: /bin/bash
+    creates: /home/{{ agent_user }}/.local/bin/claude
+
+- name: Create the task directory (outside the checkout)
+  become: true
+  become_user: "{{ agent_user }}"
+  ansible.builtin.file:
+    path: "{{ task_dir }}/logs"
+    state: directory
+    mode: "0700"
