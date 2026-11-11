@@ -1,4 +1,4 @@
-AFK# L7 — Automate
+# L7 — Automate
 
 **Goal:** Run the agent **without you at the keyboard**: in scripts, in CI, on a schedule, or inside your own tools.
 The same principles apply. Only the trigger changes.
