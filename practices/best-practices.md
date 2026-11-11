@@ -65,7 +65,7 @@ See [L3](../levels/L3-spec-plan-code.md#where-the-spec-lives), [L4](../levels/L4
 | 22 | Give the agent a way to check itself: build, vet, tests, running app | [L4](../levels/L4-test-first.md) |
 | 23 | Tests first for new behaviour. Review the tests harder than the code. | [L4](../levels/L4-test-first.md) |
 | 24 | Commit tests before implementing so any test tampering shows up | [L4](../levels/L4-test-first.md) |
-| 25 | Prefer deep modules: agree on a small public interface first, test only through it. Deepen existing shallow code with `/improve-codebase-architecture` | [L4](../levels/L4-test-first.md#3-deep-modules-one-small-interface-one-test-boundary) |
+| 25 | Prefer deep modules: agree on a small public interface first, test only through it. Deepen existing shallow code with `/improve-codebase-architecture` | [L4](../levels/L4-test-first.md#5-deep-modules-one-small-interface-one-test-boundary) |
 | 26 | Demand evidence: "show me the output", not just "done" | [L1](../levels/L1-prompt-verify.md) |
 | 27 | Independent review in fresh context (subagent / second session / CI) | [L6](../levels/L6-scale.md) |
 | 28 | Enforce what must always happen with hooks (format, guards) | [L5](../levels/L5-extend.md) |

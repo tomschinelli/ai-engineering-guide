@@ -326,10 +326,12 @@ Spec and plan stay in `.scratch/`, not in a commit.
 - **Start from:** `/clear`, the plan file and the git log. **Not** the previous slice's chat: whatever matters from it
   is in the commit and the plan.
 - **Goal:** one slice, working and tested, committed.
+- **From L4 on:** run each slice test-first instead, with the [L4 runbook](L4-test-first.md#3-the-runbook-at-a-glance) (steps 1–7).
 - **Prompt:**
 
 ```text
-Read @.scratch/plans/link-expiry.md. Steps 1–2 are done (see git log). Implement step 3 only.
+Read @.scratch/plans/link-expiry.md. Take the first step not ticked done and name it. If git log
+disagrees with the ticks, stop and tell me. Implement that step only.
 Run its Verify command. Stop and show me the diff and the test output.
 ```
 
@@ -337,7 +339,7 @@ Run its Verify command. Stop and show me the diff and the test output.
 - **Then:**
 
 ```text
-Commit as "feat(links): <step title>". Tick step 3 in the plan. If anything differed from
+Commit as "feat(links): <step title>". Tick that step in the plan. If anything differed from
 the plan, add a line to its Log.
 ```
 
@@ -411,7 +413,7 @@ prompt about three times, [L5](L5-extend.md#2-skills) turns it into a skill. Rea
 |---|---|---|
 | 2 Draft the spec | Interview prompt | `/spec` ([L5](L5-extend.md#2-skills)) |
 | 3 Harden, 5 grill plan | Gap-finding prompt | `/grill-me` (you can use it now) |
-| 7 Execute a slice | Slice prompt | `/tdd`, test-first with a review stop ([L4](L4-test-first.md), [L5](L5-extend.md#2-skills)) |
+| 7 Execute a slice | Slice prompt | [L4 runbook](L4-test-first.md#3-the-runbook-at-a-glance) steps 1–7, then `/tdd` ([L4](L4-test-first.md#10-it-gets-easier-tdd), [L5](L5-extend.md#2-skills)) |
 | 8 PR | `gh pr create` prompt | `/ship` ([L5](L5-extend.md#2-skills)) |
 | Slices → tickets | Steps in the plan file | `/to-tickets` + a board ([L7](L7-automate.md#the-pipeline)) |
 

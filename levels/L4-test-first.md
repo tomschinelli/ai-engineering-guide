@@ -3,19 +3,29 @@
 **Goal:** Make tests the agent's **feedback loop**. When the agent can check its own work objectively,
 you can give it bigger tasks and trust the result more. This is the backbone of everything after this level.
 
+**Where this fits:** L4 continues the [L3 runbook](L3-spec-plan-code.md#3-the-runbook-at-a-glance). You start with an
+**approved plan** (`.scratch/plans/link-expiry.md`, the output of L3 step 5). L4 zooms into **L3 step 7
+"Execute one slice"** and splits it into test-first steps 1–7. L3 steps 0–6 and 8 stay as they are.
+
+> **Already thinking "this could be automated"?** The [`/tdd`](../templates/.claude/skills/tdd/) skill runs most of these
+> sub-steps with a stop for your test review. Learn the steps by hand first. See
+> [10. It gets easier: `/tdd`](#10-it-gets-easier-tdd).
+
 ---
 
 ## 1. Why tests matter more with AI
 
 ```mermaid
-flowchart LR
-    subgraph Without tests
-      A1[Agent writes code] --> A2[Agent says 'done'] --> A3[You discover bugs<br/>later, manually]
+flowchart TB
+    subgraph Without["Without tests"]
+      direction TB
+      A1[write code] --> A2["'done'"] --> A3[bugs found later]
     end
-    subgraph With tests
-      B1[Agent writes code] --> B2[Runs tests] --> B3{Pass?}
+    subgraph With["With tests"]
+      direction TB
+      B1[write code] --> B3{tests pass?}
       B3 -- no --> B1
-      B3 -- yes --> B4[Done, with evidence]
+      B3 -- yes --> B4[done + evidence]
     end
 ```
 
@@ -26,51 +36,195 @@ flowchart LR
 
 ---
 
-## 2. TDD with an agent
+## 2. The TDD loop per slice
 
 ```mermaid
-flowchart TD
-    AC[Acceptance criteria from spec] --> T[1 · Agent writes tests<br/>no implementation]
-    T --> RV[2 · YOU review the tests<br/>do they match intent?]
-    RV --> RED[3 · Run: confirm they FAIL]
-    RED --> CT[4 · Commit tests]
-    CT --> IMP[5 · Agent implements<br/>'don't modify tests']
-    IMP --> RUN{6 · Tests pass?}
+flowchart LR
+    AC[plan step<br/>+ criteria] --> IF[1 · interface] --> T[2 · write tests] --> RV[3 · YOU review] --> CT[4 · commit tests]
+    CT --> IMP[5 · implement<br/>tests untouched] --> RUN{pass?}
     RUN -- no --> IMP
-    RUN -- yes --> REF[7 · Refactor, tests stay green]
-    REF --> CM[8 · Review diff + commit]
+    RUN -- yes --> REF[6 · refactor] --> CM[7 · review + commit]
 ```
 
+The L3 core rule still holds: **every step ends in a file or a commit**, and the next session starts from that.
+
 ```
- criteria ─▶ write tests ─▶ YOU review tests ─▶ confirm RED ─▶ commit tests
-                                                                  │
-          commit ◀─ review ◀─ refactor ◀── GREEN ◀── implement ◀──┘
-                                                       ▲   │ fail
-                                                       └───┘
-```
-
-**The key step is #2: you review the tests.** The tests are where your intent gets written down.
-Reviewing 40 lines of tests is easier than reviewing 400 lines of implementation, and if the tests are right,
-the implementation is constrained.
-
-Prompts:
-
-```text
-# step 1
-Based on the acceptance criteria in @.scratch/specs/link-expiry.md, write table-driven tests
-in internal/store/expiry_test.go. Do NOT write the implementation. Use the fake clock
-from internal/clock. Run them and confirm they fail for the right reason.
-
-# step 5
-Implement the code so the tests in internal/store/expiry_test.go pass.
-Do not modify the test file. Run `go test ./... -race` and show the output.
+ plan step k ─▶ Interface: line ─▶ *_test.go ─▶ test: commit ─▶ code ─▶ feat: commit + tick
+ (approved)     (in plan file)     (RED)        (approved)      (GREEN)  (plan updated)
+     ▲                                               │
+     └── /clear ─────────────────── /clear ──────────┘
 ```
 
-**Committing the tests before implementing** means that if the agent touches them later, `git diff` shows it right away.
+Why this order:
+
+- **You review the tests (step 3), not just the code.** The tests are where your intent gets written down.
+  Reviewing 40 lines of tests is easier than reviewing 400 lines of implementation, and if the tests are right,
+  the implementation is constrained.
+- **Tests are committed before the implementation (step 4).** If the agent touches them later, `git diff` shows it
+  right away. Without the commit, a "fixed" test looks the same as a new one.
+- **Interface before tests (step 1).** Tests sit on the interface. Agree on it first, or the tests freeze a design
+  nobody chose. See [5. Deep modules](#5-deep-modules-one-small-interface-one-test-boundary).
+- **`/clear` before implementing (step 5).** A fresh session implements against the committed tests, not against
+  the reasoning that produced them. The tests are the hand-off.
 
 ---
 
-## 3. Deep modules: one small interface, one test boundary
+## 3. The runbook at a glance
+
+`x` = feature slug (`link-expiry`), `k` = the plan step (slice) you're on. "Step N" means a runbook step below, "plan step k" means a slice in the plan file.
+
+| # | Step | Start from | Goal | Output | Done when |
+|---|---|---|---|---|---|
+| — | Setup (once per project) | — | The agent can check itself | CLAUDE.md `## Testing`, `## Design`, definition of done; fake clock | Agent runs the DoD without being told how |
+| 1 | Pick slice, agree interface | `/clear`, plan file, git log | Smallest public API for this slice | `Interface:` line in plan step k | You approved it (skip if it exists) |
+| 2 | Write failing tests | Plan step k + its *Covers* criteria in the spec | Executable criteria | `*_test.go` (uncommitted) | RED for the right reason |
+| 3 | **You** review the tests | Test file | Tests match your intent | Edited test file | Test-review checklist passes |
+| 4 | Commit the tests | Approved tests | Make tampering visible | `test(links): …` commit | `git log` shows it |
+| 5 | Implement | `/clear`, plan step k, committed tests | Make them pass | Code (uncommitted) | Verify + DoD green, test files unchanged |
+| 6 | Refactor / deepen | Green code | Simpler, deeper code | Code (uncommitted) | Tests unchanged and green, no new exports |
+| 7 | Review + commit | Diff | Ship the slice | `feat(links): …` commit, step ticked, Log line | Review checklist passes |
+
+Then the next slice (back to step 1), or after the last one [L3 step 8: Finish → PR](L3-spec-plan-code.md#step-8-finish--pr).
+
+---
+
+## 4. Runbook steps
+
+### Setup (once per project)
+
+- **Goal:** the agent knows how to test and when it's done, without you repeating it in every prompt.
+- **Do:** add the [Go testing conventions](#6-go-testing-conventions-to-put-in-claudemd) and the
+  [Design rules](#put-it-in-claudemd) to `CLAUDE.md`. Make sure time is injectable (`internal/clock` with a fake), so
+  tests never sleep.
+- **Output:** `CLAUDE.md` with `## Testing`, `## Design` and a definition of done
+  (`gofmt -l . && go vet ./... && go test ./... -race`).
+
+### Step 1: Pick the slice, agree on the interface
+
+- **Start from:** `/clear`, the plan file, `git log`.
+- **Goal:** the smallest public interface that covers this slice's criteria. Skip this step if the slice only uses
+  an interface that already exists.
+- **Prompt:**
+
+```text
+Read @.scratch/plans/link-expiry.md. Take the first plan step not ticked done and name it. If
+git log disagrees with the ticks, stop and tell me. For that step only: propose the public
+interface of the package it touches. Goal: a deep module, the smallest interface that covers
+the criteria the step lists from @.scratch/specs/link-expiry.md.
+Show me 2 alternative designs, say which is smaller/simpler for callers, and list what
+stays unexported. No tests, no code yet.
+```
+
+- **You:** pick one. Ask: could a caller do everything with fewer methods/params? Does any exported name only exist
+  so it can be tested?
+- **Then:** *"Write the chosen interface into that plan step as an `Interface:` line."*
+- **Output:** plan step k with an `Interface:` line.
+
+### Step 2: Write failing tests
+
+- **Start from:** the same session (the interface is fresh), plan step k, the spec criteria it covers.
+- **Goal:** the acceptance criteria become tests that fail because the behaviour is missing.
+- **Prompt:**
+
+```text
+Based on the criteria this plan step covers in @.scratch/specs/link-expiry.md, write table-driven
+tests in internal/shortener/shortener_test.go using package shortener_test. Test ONLY
+through the interface in the plan. No tests for internal helpers. Use the in-memory store
+and the fake clock from internal/clock, no mocks of internal parts.
+Do NOT write the implementation. Run the tests and show that they fail for the right reason.
+```
+
+- **Output:** a test file, not committed yet.
+- **Done when:** the tests fail because the behaviour is missing, **not** because of a compile error or a typo in the test.
+  A test that's red for the wrong reason proves nothing.
+
+### Step 3: You review the tests
+
+**This is the key step.** Read the test file yourself, line by line. Go through the
+[test-review checklist](#8-the-ai-review-checklist), especially:
+
+- [ ] Every criterion step k covers has at least one test case
+- [ ] Edge cases from the spec's Behaviour table are cases in the table (empty, invalid, boundary, expired)
+- [ ] Tests check **behaviour** through the public API, not how the code does it
+- [ ] Nothing "can't fail" (assertions on mocks only, `if err != nil { return }` in a test)
+
+- **Change it:** *"Add a case for `ttl == 0`"*, *"This asserts on the mock, assert on the returned error instead."*
+- **Optional mutation spot-check:** once the code exists (step 5), ask *"introduce a subtle bug in the implementation,
+  check that the tests catch it, then revert."* It's a quick way to test your tests.
+- **Output:** a test file you'd sign off on.
+
+### Step 4: Commit the tests
+
+```text
+Commit only the test file as "test(links): <behaviour from this plan step>".
+```
+
+- **Why:** from now on any change to the tests shows up in `git diff`. That's how you catch the agent
+  "fixing" a test instead of the code.
+- **Output:** a `test(links): …` commit. The tests are still red.
+
+### Step 5: Implement
+
+- **Start from:** `/clear`, plan step k, the committed tests.
+- **Goal:** make the tests pass without touching them.
+- **Prompt:**
+
+```text
+Read @.scratch/plans/link-expiry.md, first step not ticked done. Implement it so the tests in
+internal/shortener/shortener_test.go pass. Don't change the test file. Don't add exported
+identifiers beyond the Interface in the plan, put helpers in unexported functions, no new
+Go interfaces unless there are two real implementations. If a test looks wrong, stop and
+tell me why instead of changing it. Run its Verify command and
+`go test ./... -race && go vet ./...`, and show the output.
+```
+
+- **Output:** code, not committed yet.
+- **Done when:** Verify and the definition of done are green, and `git diff HEAD -- '*_test.go'` is empty.
+- **A test really is wrong?** Go back to steps 2–3 on purpose: fix it, review it, commit it as its own `test:` commit.
+  Never as part of the implementation.
+- Need more than unit tests to trust it? Use the [verification layers](#7-verification-beyond-unit-tests).
+
+### Step 6: Refactor / deepen
+
+- **Start from:** green code, same session.
+- **Goal:** simpler, deeper code. Behaviour stays the same.
+- **Prompt:**
+
+```text
+Review internal/shortener for shallow design: pass-through methods, exported things
+only used inside the package, interfaces with one implementation, tiny types that
+just forward calls. Propose merges that shrink the interface. Tests must stay unchanged and green.
+```
+
+- **Done when:** tests unchanged and green, no new exports. If a refactor needs test changes, the boundary is wrong.
+  Stop and rethink the interface (back to step 1).
+- Small slice, nothing to improve? Skip it.
+
+### Step 7: Review the diff and commit
+
+- **Start from:** the diff since the `test:` commit.
+- **You:** review it with [`templates/review-checklist.md`](../templates/review-checklist.md) and
+  [the L4 additions](#8-the-ai-review-checklist). Run the Verify command yourself if in doubt.
+- **Prompt:**
+
+```text
+Commit as "feat(links): <plan step title>". Tick that step in the plan. If anything differed from
+the plan, add a line to its Log.
+```
+
+- **Output:** a `feat(links): …` commit right after its `test(links): …` commit, plan step k ticked.
+- **Next:** `/clear` → step 1 for the next slice. After the last slice: [L3 step 8](L3-spec-plan-code.md#step-8-finish--pr),
+  where *"every acceptance criterion has a passing test"* is now easy to check.
+
+### Rules
+
+- **Approved tests don't change quietly.** Changing a test is a separate, reviewed `test:` commit.
+- **One slice at a time.** Each slice gets its own `test:` → `feat:` pair.
+- **Reality differs from the plan?** Stop. Update the plan file first (step + Log line), then continue (as in L3).
+
+---
+
+## 5. Deep modules: one small interface, one test boundary
 
 A **deep module** hides a lot of behaviour behind a **small interface**. A **shallow module** has an interface
 almost as complex as what it does (the term comes from John Ousterhout, *A Philosophy of Software Design*).
@@ -94,14 +248,6 @@ flowchart LR
     end
 ```
 
-```
- SHALLOW                                  DEEP
- test ─▶ Validator                        tests ─▶ ┌─ Shorten() ─ Resolve() ─┐  ◀ test boundary
- test ─▶ CodeGenerator                             │ validate, generate code,│
- test ─▶ CollisionChecker (mocks)                  │ retry, expiry, storage  │  ◀ free to change
- test ─▶ Repo (mocks)                              └─────────────────────────┘
-```
-
 ### Why it matters with an agent
 
 | Shallow modules | Deep modules |
@@ -114,6 +260,8 @@ flowchart LR
 
 Agents drift toward shallow code by default: they add an exported helper, an interface and a mock for every
 step, because each piece is easy to generate and test on its own. You have to steer them toward deep modules.
+The runbook does that in steps **1** (agree on the interface), **2** (test only through it), **5** (no extra
+exports) and **6** (deepen).
 
 ### shorty example
 
@@ -132,47 +280,9 @@ URL validation, code generation, collision retry and expiry checks are all **une
 `package shortener_test` and only call `Shorten`/`Resolve`. They use a real in-memory `Store` and the fake clock.
 Fakes go only at true external edges (DB, network, time), never between internal pieces.
 
-### How to guide Claude toward deep modules
+### Put it in `CLAUDE.md`
 
-**1. Design the interface before the tests.** Put it in the spec/plan (L3) and make it the first thing you review.
-
-```text
-Before writing any tests or code: propose the public interface for the shortener
-package. Goal: a deep module, the smallest interface that covers the acceptance criteria
-in @.scratch/specs/link-expiry.md. Hide validation, code generation, retries and expiry
-behind it. Show me 2 alternative designs, say which is smaller/simpler for callers,
-and list what stays unexported. No code yet.
-```
-
-**2. Review the interface like you review tests.** Ask: could a caller do everything with fewer methods/params?
-Does any exported name only exist so it can be tested?
-
-**3. Write the tests against the interface only.**
-
-```text
-Write table-driven tests in internal/shortener/shortener_test.go using package
-shortener_test. Test ONLY through the exported API (New, Shorten, Resolve and the
-error values). No tests for internal helpers. Use the in-memory store and fake clock,
-no mocks of internal parts. Confirm they fail.
-```
-
-**4. Implement behind the interface.**
-
-```text
-Implement so the tests pass. Don't change the test file and don't add exported
-identifiers beyond the agreed interface. Put helpers in unexported functions.
-No new Go interfaces unless there are two real implementations.
-```
-
-**5. Deepen in the refactor step.**
-
-```text
-Review internal/shortener for shallow design: pass-through methods, exported things
-only used inside the package, interfaces with one implementation, tiny types that
-just forward calls. Propose merges that shrink the interface. Tests must stay unchanged and green.
-```
-
-**Put it in `CLAUDE.md`** so you don't have to repeat it:
+So you don't have to repeat it:
 
 ```markdown
 ## Design
@@ -195,7 +305,7 @@ just forward calls. Propose merges that shrink the interface. Tests must stay un
 
 ### Deepening existing code: `/improve-codebase-architecture`
 
-Steps 1–5 above keep *new* code deep. For code that is **already shallow**, use the vendored skill
+The runbook keeps *new* code deep. For code that is **already shallow**, use the vendored skill
 [`improve-codebase-architecture`](../templates/.claude/skills/improve-codebase-architecture/) (`SKILL.md` +
 `REFERENCE.md`). It looks for clusters of shallow, tightly coupled modules and turns one of them into a refactor RFC for
 a deeper module. Read its `SKILL.md` for the exact process. In short, this is how you use it:
@@ -211,24 +321,14 @@ flowchart LR
     GI --> T["Implement test-first<br/>/tdd or L7 board"]
 ```
 
-```
- /improve-codebase-architecture
-   ├─ explore ─▶ candidates (cluster, coupling, dependency category, test impact)
-   │               └─ YOU pick one
-   ├─ frame problem ─▶ 3+ sub-agents design different interfaces ─▶ recommendation
-   │                                                                   └─ YOU pick
-   └─ writes issues/<name>.md (RFC) ─▶ move it to a GitHub issue, delete the file
-                                      ─▶ implement it test-first (§2, /tdd, or the L7 board)
-```
-
 | Your step | What to do |
 |---|---|
 | Start | Run it on a clean branch: `/improve-codebase-architecture`. Optionally name an area: `… focus on internal/shortener and internal/store`. |
 | Pick a candidate | Prefer clusters where bugs keep appearing *between* pieces, or where tests are mostly mocks. |
-| Pick an interface | Apply the review questions from step 2 above: fewer methods/params? anything exported only for tests? |
+| Pick an interface | Apply the review questions from step 1: fewer methods/params? anything exported only for tests? |
 | Review the RFC | It's a spec (L3): check the interface, the dependency strategy and the list of tests to delete *before* any code. |
 | Move it out of the repo | *"Create a GitHub issue from issues/<name>.md with `gh issue create --body-file`, show me the title first, then delete the local file."* |
-| Implement | Boundary tests first, then move code behind the interface, then delete the old shallow tests as a separate, visible commit. |
+| Implement | Plan it like any feature (L3 steps 4–5), then run the [runbook](#4-runbook-steps) per slice: boundary tests first, move code behind the interface, then delete the old shallow tests as a separate, visible commit. |
 
 **Map the skill's dependency categories (see its `REFERENCE.md`) to shorty:**
 
@@ -245,7 +345,7 @@ flowchart LR
   that hurts, not on every PR ([context & cost](../practices/context-and-cost.md)).
 - **Deleting tests is on purpose here.** The skill's testing strategy is "replace, don't layer": once boundary tests
   exist, the old shallow tests go. That's fine **only** when it's listed in the RFC you approved and the new boundary
-  tests were green first. An unplanned test deletion is still tampering (§1).
+  tests were green first. An unplanned test deletion is still tampering ([Rules](#rules)).
 - **Go idiom.** "Port" in Go means a small interface defined by the *consumer*. Only add it at a real boundary
   (categories 3 and 4). Keep the "no interface with one implementation" rule everywhere else.
 - **Output location.** The skill writes a local `issues/*.md` file. Don't commit it: add `issues/` to `.gitignore`
@@ -255,7 +355,7 @@ flowchart LR
 
 ---
 
-## 4. Go testing conventions to put in CLAUDE.md
+## 6. Go testing conventions to put in CLAUDE.md
 
 ```markdown
 ## Testing
@@ -269,7 +369,7 @@ flowchart LR
 
 ---
 
-## 5. Verification beyond unit tests
+## 7. Verification beyond unit tests
 
 The rule: **give the agent a way to see what you would see.**
 
@@ -290,13 +390,14 @@ flowchart BT
     style E fill:#ffd
 ```
 
-Cheap checks at the bottom run constantly. Expensive ones at the top run before you finish a task.
+Cheap checks at the bottom run constantly. Expensive ones at the top run before you finish a task (step 5).
 
 ---
 
-## 6. The AI review checklist
+## 8. The AI review checklist
 
-Use [`templates/review-checklist.md`](../templates/review-checklist.md) for every PR. At this level, add:
+Use [`templates/review-checklist.md`](../templates/review-checklist.md) for every PR. At this level, add
+(use it at step 3 for the tests and at step 7 for the diff):
 
 - [ ] Do the tests check **behaviour**, or do they just mirror the implementation?
 - [ ] Are edge cases from the spec covered (empty, invalid, boundary, concurrent)?
@@ -305,14 +406,12 @@ Use [`templates/review-checklist.md`](../templates/review-checklist.md) for ever
 - [ ] Is there test logic that "can't fail" (assertions on mocks only, `if err != nil { return }` in tests)?
 - [ ] Do tests go through the public API only? Did the diff export anything new that wasn't agreed?
 
-> **Mutation spot-check:** sometimes ask the agent to *"introduce a subtle bug in the implementation and check
-> whether the tests catch it, then revert."* It's a quick way to test your tests.
-
 ---
 
-## 7. Legacy code: tests first, then change
+## 9. Legacy code: tests first, then change
 
-For legacy repos without tests, don't refactor blind:
+For legacy repos without tests, don't refactor blind. If a slice touches untested code, pin its current
+behaviour **before step 1**, as its own `test:` commit:
 
 ```mermaid
 flowchart LR
@@ -329,19 +428,47 @@ the code. List anything that looks like a bug separately.
 
 ---
 
-## 8. Exercise
+## 10. It gets easier: `/tdd`
 
-1. Add **click counting** to shorty with full TDD: criteria → tests → you review → red → commit → implement → green.
-2. Do the mutation spot-check on it.
-3. Before writing tests, have Claude propose the public interface of the package it touches (two designs). Pick the smaller one, then test only through it.
-4. Run `/improve-codebase-architecture` on shorty (or your own repo). Pick one candidate, approve an RFC, and implement it test-first.
-5. In your legacy repo, pick one untested function you'll need to change soon and write characterisation tests for it.
+Once you've run the runbook by hand a few times, the vendored [`/tdd`](../templates/.claude/skills/tdd/) skill
+shortens the prompts. Read its `SKILL.md` for what it does exactly. Roughly:
+
+| Runbook step | With `/tdd` |
+|---|---|
+| 1 Interface | The skill proposes it and asks for your OK |
+| 2 Failing tests | The skill writes them and shows RED |
+| 3 You review | The skill **stops** and waits. You still do the review. |
+| 4 Commit tests | The skill commits after your approval |
+| 5–6 Implement, refactor | The skill does them, without touching the tests |
+| 7 Review + commit | Still you: review the diff, commit, tick the plan |
+
+`/clear` between slices and the plan file as hand-off stay the same. The skill only shortens the prompts. It
+doesn't replace your review in step 3.
+
+---
+
+## 11. Exercise
+
+Feature: **click counting** for shorty (each redirect increments a counter; a stats endpoint returns it).
+
+1. **L3 steps 1–5:** short spec with acceptance criteria, then a vertical-slice plan → `.scratch/plans/click-counting.md`
+2. **L3 step 6:** branch `feat/click-counting`
+3. **Per slice, steps 1–7:**
+   - Step 1: have Claude propose two interfaces, pick the smaller one, write it into the plan
+   - Steps 2–4: tests through that interface only, RED for the right reason, your review, `test:` commit
+   - Steps 5–7: `/clear`, implement, check `git diff HEAD -- '*_test.go'` is empty, `feat:` commit, tick the plan
+4. On one slice, do the mutation spot-check (step 3)
+5. **L3 step 8:** check every criterion has a passing test, open the PR. `git log` should show `test:` before `feat:` for every slice
+6. Run `/improve-codebase-architecture` on shorty (or your own repo). Pick one candidate, approve an RFC, and implement it with the runbook.
+7. In your legacy repo, pick one untested function you'll need to change soon and write characterisation tests for it.
 
 ---
 
 ## Level up when…
 
 - [ ] For new behaviour, tests come first by default
+- [ ] You can name the input and the output of every step from 1 to 7
+- [ ] Every slice has a `test:` commit before its `feat:` commit
 - [ ] You review tests more carefully than implementation
 - [ ] You agree on a small public interface first and test through it, not through internal helpers
 - [ ] Your `CLAUDE.md` has a definition of done the agent runs itself

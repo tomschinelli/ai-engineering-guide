@@ -18,6 +18,7 @@ not "all the models", then "all the handlers". Every acceptance criterion should
 
 ### 1. <step title>
 - Covers: <acceptance criteria from the spec>
+- Interface: <optional: agreed public API, filled in L4 step 1>
 - Files: `internal/...`
 - Changes: <what>
 - Tests: <which tests are added/changed>
@@ -26,6 +27,7 @@ not "all the models", then "all the handlers". Every acceptance criterion should
 
 ### 2. <step title>
 - Covers:
+- Interface:
 - Files:
 - Changes:
 - Tests:
