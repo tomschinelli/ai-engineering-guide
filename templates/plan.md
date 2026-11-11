@@ -1,6 +1,6 @@
 # Plan: <feature name>
 
-- **Issue:** #<N>
+- **Idea:** .scratch/ideas/<feature>.md or issue #<N>
 - **Spec:** .scratch/specs/<feature>.md
 
 > Working file in `.scratch/plans/` (gitignored). Don't commit it. After merge, move lasting decisions into the
@@ -14,9 +14,10 @@
 ## Steps
 <Each step is small, verifiable, and gets its own commit.
 Slice vertically: each step is a thin end-to-end path (migration → store → handler → test) you can demo on its own,
-not "all the models", then "all the handlers". Note blockers if steps could run in parallel: "Blocked by: 1".>
+not "all the models", then "all the handlers". Every acceptance criterion should be covered by a step. Note blockers if steps could run in parallel: "Blocked by: 1".>
 
 ### 1. <step title>
+- Covers: <acceptance criteria from the spec>
 - Files: `internal/...`
 - Changes: <what>
 - Tests: <which tests are added/changed>
@@ -24,6 +25,7 @@ not "all the models", then "all the handlers". Note blockers if steps could run 
 - [ ] done
 
 ### 2. <step title>
+- Covers:
 - Files:
 - Changes:
 - Tests:
