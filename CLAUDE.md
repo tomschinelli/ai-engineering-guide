@@ -18,7 +18,10 @@ A personal zero-to-hero guide for AI-assisted development with Claude Code. Mark
 - Never tell readers to commit work items. Backlog/tickets/RFCs → GitHub issues; specs, plans, TODO lists → gitignored
   `.scratch/`, deleted after merge. Committed docs are knowledge only (CLAUDE.md, architecture, ADRs).
   See `practices/best-practices.md#where-work-lives`.
-- Keep relative links working when moving files.
+- Commit directly to `main`. Do not create branches.
+- Commit only when I ask. Push only when I ask.
+
+
 
 ## External references and skills (strict)
 - Use a reference **exactly as the user gives it**: same URL, same skill name, same version/content. Don't swap it for a
