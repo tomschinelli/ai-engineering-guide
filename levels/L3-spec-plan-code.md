@@ -3,6 +3,10 @@
 **Goal:** Handle features bigger than one prompt. Separate **thinking** from **typing**: decide *what* and *how*
 before the agent edits anything, then run the work through branches and PRs.
 
+> **Already thinking "this could be automated"?** It can. This level uses long, plain prompts on purpose, so you learn
+> what each step does. Skills like `/spec`, `/grill-me`, `/tdd` and `/ship` replace them later. See
+> [7. It gets easier: skills later](#7-it-gets-easier-skills-later).
+
 ---
 
 ## 1. The workflow: Spec → Plan → Slices → PR
@@ -12,7 +16,7 @@ flowchart LR
     I[Idea<br/>issue or idea file] --> S[Spec<br/>what + why]
     S --> H[Harden spec<br/>grill + write back]
     H --> P[Plan<br/>plan mode, read-only]
-    P --> R{You review plan}
+    P --> R{You review plan<br/>against spec}
     R -- change --> P
     R -- approve --> F[Save plan file]
     F --> X[Execute one slice<br/>fresh session]
@@ -37,7 +41,7 @@ A spec and a plan are cheap to correct. Ten edited files are not.
 | Task size | Approach |
 |---|---|
 | Typo, rename, one-function fix | L1 micro-loop, no plan |
-| Clear change touching 2–5 files | Plan mode → implement (steps 4–8, no spec) |
+| Clear change touching 2–5 files | Plan mode → implement (steps 4–7, no spec) |
 | New feature, unclear design, or legacy code | The full runbook below |
 
 ---
@@ -76,11 +80,10 @@ Files live in `.scratch/` (gitignored). `x` = your feature slug, e.g. `link-expi
 | 2 | Draft the spec | Idea (file or issue) + spec template | Capture *what* and *why* | `.scratch/specs/x.md` (draft) | All template sections filled |
 | 3 | Harden the spec | Spec draft | Remove gaps and guesses | Same file, rewritten (approved) | Spec-ready checklist passes |
 | 4 | Draft the plan | Approved spec | Decide *how*, as vertical slices | Plan in chat (plan mode can't write) | Agent proposes slices |
-| 5 | Review + save the plan | Plan in chat | Your design review | `.scratch/plans/x.md` (approved) | Plan-ready checklist passes |
-| 6 | *Optional:* grill both | Spec + plan files | Harden *how* against *what* | Both files updated | No new open questions |
-| 7 | Branch | Approved plan | Isolate the work | `feat/x` branch | — |
-| 8 | Execute one slice (loop) | Plan file + git log | One working, tested slice | 1 commit + plan checkbox ticked | Slice's Verify command passes |
-| 9 | Finish → PR | All slices ticked | Ship it for review | PR (`Closes #N` if there's an issue) | Merged, scratch files deleted |
+| 5 | Review + save the plan | Plan in chat | Your design review: *how* against *what* (grill it if big/risky) | `.scratch/plans/x.md` (approved) | Plan-ready checklist passes |
+| 6 | Branch | Approved plan | Isolate the work | `feat/x` branch | — |
+| 7 | Execute one slice (loop) | Plan file + git log | One working, tested slice | 1 commit + plan checkbox ticked | Slice's Verify command passes |
+| 8 | Finish → PR | All slices ticked | Ship it for review | PR (`Closes #N` if there's an issue) | Merged, scratch files deleted |
 
 The rest of this level walks through each step. Every step lists the same four things: **Start from**, **Goal**,
 **Prompt**, **Output**.
@@ -264,20 +267,33 @@ any slice and still have working software, and slices whose blockers are done ca
 
 If the agent planned by layer anyway: *"Re-cut this into vertical slices as asked."*
 
-### Step 5: Review the plan, then save it
+### Step 5: Review the plan against the spec, then save it
+
+Step 3 hardened *what* without looking at code. Step 4 read the code, so the plan may hit facts the spec couldn't know
+(an awkward schema, a needed migration, a clash with existing behaviour). This step checks *how* against *what*,
+once. The spec isn't re-grilled: it only changes where the plan shows a requirement is wrong or impossible.
 
 - **Start from:** the plan in the chat (same session, still in plan mode).
 - **Goal:** your design review. Change the plan until you'd defend every step.
 - **Push back while still in plan mode:** "Why a new package?", "Step 3 is too big, split it",
   "Use the existing clock interface for testability", "Which step covers the 'expired → 410' criterion?"
-- **Then leave plan mode and write the file:**
+- **Big or risky feature?** (unclear design, legacy code, data migrations, anything hard to undo) Leave plan mode
+  and grill the plan instead of only pushing back:
+
+```text
+/grill-me the plan above against @.scratch/specs/link-expiry.md
+```
+
+  If a requirement turns out wrong, fix the spec now: *"Update .scratch/specs/link-expiry.md with the requirement
+  changes we just decided."*
+- **Then leave plan mode (if you haven't) and write the file:**
 
 ```text
 Write the approved plan to .scratch/plans/link-expiry.md using @docs/templates/plan.md,
 Status: approved, link the spec (and the issue, if there is one). Don't write any code.
 ```
 
-- **Output:** `.scratch/plans/link-expiry.md` with `Status: approved`.
+- **Output:** `.scratch/plans/link-expiry.md` with `Status: approved` (and the spec, if a requirement changed).
 
 > Claude Code may keep its own copy of the plan when you leave plan mode (check the docs for your version). The file in
 > `.scratch/plans/` is the one you own, edit and re-read in every slice session.
@@ -290,49 +306,14 @@ Status: approved, link the spec (and the issue, if there is one). Don't write an
 - [ ] Every step is small enough for one fresh session
 - [ ] Blockers are noted, risks and open questions are listed
 
-### Step 6 (optional): Grill spec and plan together
-
-Step 3 hardened *what*. This one checks *how* against *what*. Use it for big or risky features.
-
-- **Start from:** `/clear`, both files.
-- **Prompt:** `/grill-me @.scratch/specs/link-expiry.md @.scratch/plans/link-expiry.md` (or the plain prompt from step 3, pointed at both files).
-- **Write back**, because grilling writes nothing:
-
-```text
-Write the decisions back: requirement/scope changes into the spec, step/task/test/
-migration changes into the plan, anything unresolved under "Open questions" in the
-file it belongs to. Check every acceptance criterion is covered by a plan step and
-a test. Don't write any code.
-```
-
-```mermaid
-flowchart LR
-    S[Spec] --> G{Grill}
-    P[Plan] --> G
-    G -- "what / why changed:<br/>requirements, edge cases,<br/>non-goals, acceptance criteria" --> S2[Spec file updated]
-    G -- "how changed:<br/>steps, order, tests,<br/>migration, rollback" --> P2[Plan file updated]
-    G -- "still unresolved" --> O[Open questions<br/>in the right file]
-```
-
-```
-               ┌──────────────────────────────────────┐
- spec file  ──▶│                                      │──▶ .scratch/specs/x.md  (what/why decisions)
-               │  /grill-me: rounds of questions      │
- plan file  ──▶│                                      │──▶ .scratch/plans/x.md  (how decisions)
-               └──────────────────────────────────────┘
-                     unresolved ──▶ "Open questions" in the file it belongs to
-```
-
-| Use it when | Skip it when |
-|---|---|
-| Unclear design, legacy code, data migrations, anything hard to undo | The change is small and obvious (2–3 clear steps) |
-| You feel "pretty sure" but couldn't defend each step in a design review | Nothing has changed since the last grilling |
+**Grilling is over** once this checklist passes. Don't grill again unless something new comes up, e.g. a slice
+shows the plan is wrong (then update the plan, see step 7).
 
 ---
 
 ## 6. Phase C: Slices → Execution
 
-### Step 7: Branch
+### Step 6: Branch
 
 ```bash
 git switch -c feat/link-expiry
@@ -340,7 +321,7 @@ git switch -c feat/link-expiry
 
 Spec and plan stay in `.scratch/`, not in a commit.
 
-### Step 8: Execute one slice (repeat per slice)
+### Step 7: Execute one slice (repeat per slice)
 
 - **Start from:** `/clear`, the plan file and the git log. **Not** the previous slice's chat: whatever matters from it
   is in the commit and the plan.
@@ -385,7 +366,7 @@ Rules:
   Improvising leaves the next session with a plan that's wrong.
 - **The plan file is the hand-off.** If the next session would need to know something, it goes in the plan or the commit message.
 
-### Step 9: Finish → PR
+### Step 8: Finish → PR
 
 - **Start from:** all steps ticked in the plan.
 - **Done when:** every acceptance criterion in the spec has a passing test. Ask: *"Check every acceptance criterion in
@@ -393,7 +374,9 @@ Rules:
 
 ```mermaid
 gitGraph
-    commit id: "main"
+    commit id: "init"
+    commit id: "feat: create short link (#10)"
+    commit id: "feat: redirect (#11)"
     branch feat/link-expiry
     checkout feat/link-expiry
     commit id: "slice 1: create w/ expiry"
@@ -427,9 +410,9 @@ prompt about three times, [L5](L5-extend.md#2-skills) turns it into a skill. Rea
 | Step | Now (L3) | Later |
 |---|---|---|
 | 2 Draft the spec | Interview prompt | `/spec` ([L5](L5-extend.md#2-skills)) |
-| 3, 6 Harden | Gap-finding prompt | `/grill-me` (you can use it now) |
-| 8 Execute a slice | Slice prompt | `/tdd`, test-first with a review stop ([L4](L4-test-first.md), [L5](L5-extend.md#2-skills)) |
-| 9 PR | `gh pr create` prompt | `/ship` ([L5](L5-extend.md#2-skills)) |
+| 3 Harden, 5 grill plan | Gap-finding prompt | `/grill-me` (you can use it now) |
+| 7 Execute a slice | Slice prompt | `/tdd`, test-first with a review stop ([L4](L4-test-first.md), [L5](L5-extend.md#2-skills)) |
+| 8 PR | `gh pr create` prompt | `/ship` ([L5](L5-extend.md#2-skills)) |
 | Slices → tickets | Steps in the plan file | `/to-tickets` + a board ([L7](L7-automate.md#the-pipeline)) |
 
 The files and the `/clear` between steps stay the same. Skills only shorten the prompts.
@@ -446,9 +429,9 @@ After every step, check the output exists and says what you agreed on, then `/cl
 3. **Step 3:** harden it in a fresh session, write back, pass the spec-ready checklist → `Status: approved`
 4. **Step 4–5:** plan mode → vertical-slice plan → push back at least once → leave plan mode → `.scratch/plans/link-expiry.md`
    - If the agent planned by layer, re-cut it.
-   - *Optional, step 6:* `/grill-me` on spec + plan, write back, and check the decisions landed in the right file
-5. **Step 7–8:** branch, then one fresh session + one commit per slice, ticking the plan as you go
-6. **Step 9:** check acceptance criteria against tests, PR via `gh` (`Closes #N` if you opened an issue), self-review on GitHub, merge
+   - *Optional:* `/grill-me` the plan against the spec before saving; fix the spec only if a requirement was wrong
+5. **Step 6–7:** branch, then one fresh session + one commit per slice, ticking the plan as you go
+6. **Step 8:** check acceptance criteria against tests, PR via `gh` (`Closes #N` if you opened an issue), self-review on GitHub, merge
 7. Condense the decisions into the PR/issue, delete the scratch files, and check `git status` shows no work files
 
 ---
