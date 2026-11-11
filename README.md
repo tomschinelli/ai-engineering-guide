@@ -125,6 +125,15 @@ flowchart LR
 
 ---
 
+## Credits
+
+Big thanks to [Matt Pocock](https://github.com/mattpocock). Many ideas here (grilling specs, deep modules,
+tracer-bullet slices, AFK loops) come from his work, and several skills are his:
+[mattpocock/skills](https://github.com/mattpocock/skills). Install them from his repo, see
+[`templates/.claude/skills/README.md`](templates/.claude/skills/README.md).
+
+---
+
 *Examples use Go and Claude Code. The principles carry over to other languages. Claude Code changes fast,
 so when a command here doesn't match your version, check `claude --help`, `/help`, and the
 [official docs](https://code.claude.com/docs).*
