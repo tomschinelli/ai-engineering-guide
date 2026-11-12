@@ -521,6 +521,9 @@ shortens the prompts. Read its `SKILL.md` for what it does exactly. Roughly:
 `/clear` between slices and the plan file as hand-off stay the same. The skill only shortens the prompts. It
 doesn't replace your review in step 3.
 
+**Next step up:** [`/implement`](../practices/pocock-workflow.md#step-4-implement-one-ticket) runs `/tdd` per ticket
+and closes with `/code-review`. See the [fast track](../practices/pocock-workflow.md) for the full idea → PR flow.
+
 ---
 
 ## 11. Exercise

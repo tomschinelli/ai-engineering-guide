@@ -419,6 +419,9 @@ prompt about three times, [L5](L5-extend.md#2-skills) turns it into a skill. Rea
 
 The files and the `/clear` between steps stay the same. Skills only shorten the prompts.
 
+**Whole workflow as skills:** after L4, try the [fast track](../practices/pocock-workflow.md): `/grill-with-docs` →
+`/to-spec` → `/to-tickets` → `/implement` → `/code-review`, with GitHub issues instead of `.scratch/` files.
+
 ---
 
 ## 8. Exercise

@@ -88,4 +88,5 @@ See [L3](../levels/L3-spec-plan-code.md#where-the-spec-lives), [L4](../levels/L4
 - **Know the failure modes** so you notice them early. → [Anti-patterns](anti-patterns.md)
 - **Version from commits.** One release workflow tags the repo and the Docker image with the same version. → [Commits, versions & releases](releases.md)
 - **In a team**, shared agent config goes through PRs, personal config stays local. → [Working in a team](team.md)
+- **Fast track once L3/L4 feel natural:** run whole features with Matt Pocock's skills, keep every review gate. → [Fast track](pocock-workflow.md)
 - **Small tweaks add up.** E.g. one line in `~/.claude/CLAUDE.md` for short reports. → [Tips](tips.md)

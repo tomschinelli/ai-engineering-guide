@@ -71,6 +71,8 @@ description: Implement a change test-first. Use when adding new behaviour or fix
 Ready-made skills in [`templates/.claude/skills/`](../templates/.claude/skills/): `spec`, `tdd`, `ship`, plus [`grill-me`](https://claudemarketplaces.com/skills/mattpocock/skills/grill-me) (vendored with `grilling`) and
 [`improve-codebase-architecture`](../templates/.claude/skills/improve-codebase-architecture/) (deepen shallow modules, see [L4](L4-test-first.md#deepening-existing-code-improve-codebase-architecture)).
 
+A whole vendor skill set used as one workflow (install, run in order, review between steps): [Fast track](../practices/pocock-workflow.md).
+
 **What makes a good skill:**
 
 - The **description** decides when it gets used. Say *what* it does and *when* to use it.

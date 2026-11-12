@@ -79,6 +79,7 @@ flowchart TB
 - [Commits, versions & releases](practices/releases.md): Conventional Commits, breaking changes, git + Docker tags
 - [VM sandbox](practices/vm-sandbox.md): unattended Claude Code runs in a throwaway VM that only reaches the public internet
 - [Tips](practices/tips.md): small general tweaks, e.g. short reports
+- [Fast track: Matt Pocock's skill workflow](practices/pocock-workflow.md): idea → PR with `/grill-with-docs`, `/to-spec`, `/to-tickets`, `/implement`, `/code-review` (after L4)
 
 **Copy-paste templates** → [`templates/`](templates/)
 
@@ -131,7 +132,8 @@ flowchart LR
 Big thanks to [Matt Pocock](https://github.com/mattpocock). Many ideas here (grilling specs, deep modules,
 tracer-bullet slices, AFK loops) come from his work, and several skills are his:
 [mattpocock/skills](https://github.com/mattpocock/skills). Install them from his repo, see
-[`templates/.claude/skills/README.md`](templates/.claude/skills/README.md).
+[`templates/.claude/skills/README.md`](templates/.claude/skills/README.md). For the full skill-driven workflow, see
+[Fast track](practices/pocock-workflow.md).
 
 ---
 
